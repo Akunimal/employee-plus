@@ -26,11 +26,6 @@ Use the AWS CDK stack only after choosing the target account and an available re
 
 The script builds and pushes an immutable image tag, deploys ECS Express Mode, and prints the HTTPS endpoint. Replace the example domain in `addon-package/addon.json` with that endpoint. Do not put tokens or personal addresses in traces.
 
-If Docker Desktop is unavailable, run the manually triggered `Publish container` GitHub Actions workflow, wait for its green result, then deploy the published tag without rebuilding locally:
-
-```powershell
-./scripts/deploy-employee-plus-service.ps1 -Profile employee-plus -Region us-east-2 -ImageTag <commit-sha>
-```
 
 ## 3. Connect the add-on
 
