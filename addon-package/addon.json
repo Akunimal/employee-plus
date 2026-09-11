@@ -22,7 +22,7 @@
     "authorizationUrl": "https://employee-plus-796429457584.auth.us-east-2.amazoncognito.com/oauth2/authorize",
     "accessTokenUri": "https://employee-plus-796429457584.auth.us-east-2.amazoncognito.com/oauth2/token",
     "clientId": "64o8ddrj17n41j28rpjlaupvpu",
-    "scopes": ["mcp:service", "mcp:tools", "mcp:resources", "employee:read", "employee:manage"],
+    "scopes": ["openid", "email", "employee/read", "employee/manage"],
     "pkce": "S256"
   },
   "tracks": ["Alexa+"],

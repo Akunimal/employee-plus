@@ -91,6 +91,7 @@ export class EmployeePlusStack extends cdk.Stack {
           { name: "RING_ENABLED", value: "false" },
           { name: "COGNITO_USER_POOL_ID", value: userPool.userPoolId },
           { name: "COGNITO_CLIENT_ID", value: client.userPoolClientId },
+          { name: "COGNITO_DOMAIN", value: cognitoDomain.domainName },
           { name: "STATE_TABLE_NAME", value: table.tableName },
           { name: "DOCUMENTS_BUCKET_NAME", value: documents.bucketName },
           { name: "EVENTS_QUEUE_URL", value: events.queueUrl },

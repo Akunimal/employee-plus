@@ -74,7 +74,17 @@ const server = createServer(async (request, response) => {
     return;
   }
   if (request.url === "/.well-known/oauth-protected-resource") {
-    writeJson(response, 200, { resource: "https://employee-plus.example/mcp", authorization_servers: ["https://employee-plus.example/oauth2"] });
+    const host = request.headers.host;
+    const cognitoDomain = process.env.COGNITO_DOMAIN;
+    if (!host || !cognitoDomain) {
+      writeJson(response, 503, { code: "OAUTH_METADATA_NOT_CONFIGURED", message: "OAuth metadata is not configured." });
+      return;
+    }
+    writeJson(response, 200, {
+      resource: `https://${host}/mcp`,
+      authorization_servers: [`https://${cognitoDomain}`],
+      scopes_supported: ["openid", "email", "employee/read", "employee/manage"],
+    });
     return;
   }
   if (request.url === "/") {
