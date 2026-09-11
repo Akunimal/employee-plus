@@ -23,7 +23,7 @@ function ThemeToggle({ theme, onToggle }: { theme: Theme; onToggle: () => void }
   const nextTheme = theme === "dark" ? "light" : "dark";
   return (
     <button className="mode-toggle" type="button" onClick={onToggle} aria-label={`Switch to ${nextTheme} mode`}>
-      <span className="mode-icon" aria-hidden="true">{theme === "dark" ? "☼" : "☾"}</span>
+      <span className="mode-icon" aria-hidden="true">{theme === "dark" ? "☾" : "☼"}</span>
       <span>{theme === "dark" ? "Dark mode" : "Light mode"}</span>
     </button>
   );
