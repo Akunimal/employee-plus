@@ -18,7 +18,13 @@ For interactive MCP validation, run the standard MCP Inspector against `http://1
 
 ## 2. Deploy a development endpoint
 
-Use the AWS CDK stack only after choosing the target account and an available region. The stack defaults to `us-east-2` for this account, but `CDK_DEFAULT_REGION` can override it; the hackathon does not require a particular AWS region. Bootstrap the account, deploy the data plane with `DEPLOY_SERVICE=false`, push an immutable image tag to ECR, then deploy ECS Express Mode with `DEPLOY_SERVICE=true IMAGE_TAG=<git-sha>`. Replace the example domain in `addon-package/addon.json` with the returned HTTPS endpoint. Do not put tokens or personal addresses in traces.
+Use the AWS CDK stack only after choosing the target account and an available region. The stack defaults to `us-east-2` for this account, but `CDK_DEFAULT_REGION` can override it; the hackathon does not require a particular AWS region. Bootstrap the account, deploy the data plane with `DEPLOY_SERVICE=false`, then run:
+
+```powershell
+./scripts/deploy-employee-plus.ps1 -Profile employee-plus -Region us-east-2
+```
+
+The script builds and pushes an immutable image tag, deploys ECS Express Mode, and prints the HTTPS endpoint. Replace the example domain in `addon-package/addon.json` with that endpoint. Do not put tokens or personal addresses in traces.
 
 ## 3. Connect the add-on
 

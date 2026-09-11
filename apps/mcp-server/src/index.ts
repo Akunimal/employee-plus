@@ -1,11 +1,15 @@
 import { createServer } from "node:http";
-import { EmployeeDomain, createFixtureStore } from "@employee-plus/domain";
+import { EmployeeDomain, createDynamoStore, createFixtureStore } from "@employee-plus/domain";
 import { toNodeHandler } from "@modelcontextprotocol/node";
 import { buildMcpHandler } from "./mcp.js";
 import { createUserResolver } from "./auth.js";
 import { parseRingWebhook, RingWebhookDeduplicator, verifyRingWebhookSignature } from "@employee-plus/adapters";
 
-const domain = new EmployeeDomain(createFixtureStore());
+const production = process.env.NODE_ENV === "production";
+const stateStore = production ? await createDynamoStore() : createFixtureStore();
+const draftSecret = process.env.DRAFT_SECRET;
+if (production && !draftSecret) throw new Error("DRAFT_SECRET is required in production.");
+const domain = new EmployeeDomain(stateStore, draftSecret ?? "employee-plus-local-draft-secret");
 const port = Number(process.env.PORT ?? 3000);
 const ringEnabled = process.env.RING_ENABLED === "true" && process.env.RING_TEST_ACCOUNT_CONNECTED === "true";
 const mcpHandler = buildMcpHandler(domain, ringEnabled, createUserResolver());
@@ -41,7 +45,7 @@ const server = createServer(async (request, response) => {
   }
   if (request.url === "/health/ready") {
     response.writeHead(200, { "content-type": "application/json" });
-    response.end(JSON.stringify({ status: "ready", persistence: "fixture-store" }));
+    response.end(JSON.stringify({ status: "ready", persistence: production ? "dynamodb" : "fixture-store", authentication: production ? "cognito-jwt" : "fixture" }));
     return;
   }
   if (request.url === "/privacy" || request.url === "/terms") {
@@ -64,7 +68,7 @@ const server = createServer(async (request, response) => {
     try {
       const event = parseRingWebhook(body);
       if (!ringDedupe.accept(event.eventId)) { writeJson(response, 202, { accepted: true, duplicate: true }); return; }
-      domain.correlateRingEvent(process.env.RING_TEST_USER_ID ?? "demo-user", event);
+      await domain.correlateRingEvent(process.env.RING_TEST_USER_ID ?? "demo-user", event);
       writeJson(response, 202, { accepted: true });
     } catch { writeJson(response, 400, { code: "INVALID_RING_EVENT", message: "Ring event payload is invalid." }); }
     return;
@@ -74,7 +78,7 @@ const server = createServer(async (request, response) => {
     return;
   }
   if (request.url === "/") {
-    writeJson(response, 200, { name: "Employee+", version: "0.1.0", status: "mcp-ready-local", ringToolsPublished: ringEnabled, example: domain.getHomeBrief("demo-user") });
+    writeJson(response, 200, { name: "Employee+", version: "0.1.0", status: production ? "mcp-ready-production" : "mcp-ready-local", ringToolsPublished: ringEnabled, example: domain.getHomeBrief("demo-user") });
     return;
   }
   writeJson(response, 404, { code: "NOT_FOUND", message: "Route not found." });

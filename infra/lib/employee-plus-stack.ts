@@ -1,5 +1,5 @@
 import * as cdk from "aws-cdk-lib";
-import { aws_cognito as cognito, aws_dynamodb as dynamodb, aws_ecr as ecr, aws_ecs as ecs, aws_events as eventsModule, aws_events_targets as eventTargets, aws_iam as iam, aws_kms as kms, aws_lambda as lambda, aws_lambda_event_sources as eventSources, aws_logs as logs, aws_s3 as s3, aws_sqs as sqs } from "aws-cdk-lib";
+import { aws_cognito as cognito, aws_dynamodb as dynamodb, aws_ecr as ecr, aws_ecs as ecs, aws_events as eventsModule, aws_events_targets as eventTargets, aws_iam as iam, aws_kms as kms, aws_lambda as lambda, aws_lambda_event_sources as eventSources, aws_logs as logs, aws_s3 as s3, aws_secretsmanager as secretsmanager, aws_sqs as sqs } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
 export class EmployeePlusStack extends cdk.Stack {
@@ -10,6 +10,20 @@ export class EmployeePlusStack extends cdk.Stack {
     const imageTag = process.env.IMAGE_TAG ?? "latest";
 
     const key = new kms.Key(this, "EmployeePlusDataKey", { enableKeyRotation: true, alias: "alias/employee-plus-data" });
+    const secretsKey = new kms.Key(this, "EmployeePlusSecretsKey", { enableKeyRotation: true, alias: "alias/employee-plus-secrets" });
+    secretsKey.addToResourcePolicy(new iam.PolicyStatement({
+      sid: "AllowSecretsManagerUse",
+      principals: [new iam.ServicePrincipal(`secretsmanager.${this.region}.amazonaws.com`)],
+      actions: ["kms:Decrypt", "kms:GenerateDataKey", "kms:DescribeKey"],
+      resources: ["*"],
+      conditions: { StringEquals: { "kms:ViaService": `secretsmanager.${this.region}.amazonaws.com` } },
+    }));
+    const draftSecret = new secretsmanager.Secret(this, "DraftSecret", {
+      description: "Employee+ confirmation token secret. Generated and consumed only by the ECS service.",
+      encryptionKey: secretsKey,
+      generateSecretString: { passwordLength: 64, excludePunctuation: true },
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
     const table = new dynamodb.Table(this, "EmployeePlusState", {
       partitionKey: { name: "pk", type: dynamodb.AttributeType.STRING },
       sortKey: { name: "sk", type: dynamodb.AttributeType.STRING },
@@ -50,6 +64,7 @@ export class EmployeePlusStack extends cdk.Stack {
     const infrastructureRole = new iam.Role(this, "InfrastructureRole", { assumedBy: new iam.ServicePrincipal("ecs.amazonaws.com") });
     infrastructureRole.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName("service-role/AmazonECSInfrastructureRoleforExpressGatewayServices"));
     repository.grantPull(executionRole);
+    draftSecret.grantRead(executionRole);
     table.grantReadWriteData(runtimeRole); documents.grantReadWrite(runtimeRole); events.grantSendMessages(runtimeRole); key.grantEncryptDecrypt(runtimeRole); key.grantEncryptDecrypt(executionRole);
     runtimeRole.addToPolicy(new iam.PolicyStatement({ actions: ["bedrock:InvokeModel"], resources: [`arn:aws:bedrock:${this.region}::foundation-model/amazon.nova-lite-v1:0`] }));
 
@@ -79,6 +94,7 @@ export class EmployeePlusStack extends cdk.Stack {
           { name: "DOCUMENTS_BUCKET_NAME", value: documents.bucketName },
           { name: "EVENTS_QUEUE_URL", value: events.queueUrl },
         ],
+        secrets: [{ name: "DRAFT_SECRET", valueFrom: draftSecret.secretArn }],
         awsLogsConfiguration: { logGroup: logGroup.logGroupName, logStreamPrefix: "employee-plus" },
       },
     }) : undefined;

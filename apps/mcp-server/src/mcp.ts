@@ -86,7 +86,7 @@ export function buildMcpHandler(domain: EmployeeDomain, ringEnabled = false, res
       inputSchema: PrepareBookingInputSchema,
       outputSchema: jsonOutput,
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
-    }, async (input) => { const draft = domain.prepareBooking(userId, input); return toolResult(`${draft.summary} Please explicitly confirm if you want me to book it.`, { draft }); });
+    }, async (input) => { const draft = await domain.prepareBooking(userId, input); return toolResult(`${draft.summary} Please explicitly confirm if you want me to book it.`, { draft }); });
 
     server.registerTool("confirm_booking", {
       title: "Confirm service booking",
@@ -94,7 +94,7 @@ export function buildMcpHandler(domain: EmployeeDomain, ringEnabled = false, res
       inputSchema: ConfirmBookingInputSchema,
       outputSchema: jsonOutput,
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
-    }, async (input) => { const booking = domain.confirmBooking(userId, input); return toolResult(`Your ${booking.providerName} visit is booked for ${booking.scheduledStart}.`, { booking }); });
+    }, async (input) => { const booking = await domain.confirmBooking(userId, input); return toolResult(`Your ${booking.providerName} visit is booked for ${booking.scheduledStart}.`, { booking }); });
 
     server.registerTool("prepare_booking_change", {
       title: "Prepare appointment change",
@@ -102,7 +102,7 @@ export function buildMcpHandler(domain: EmployeeDomain, ringEnabled = false, res
       inputSchema: PrepareBookingChangeInputSchema,
       outputSchema: jsonOutput,
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
-    }, async (input) => { const draft = domain.prepareBookingChange(userId, input); return toolResult(`${draft.summary} Please explicitly confirm if you want me to move it.`, { draft }); });
+    }, async (input) => { const draft = await domain.prepareBookingChange(userId, input); return toolResult(`${draft.summary} Please explicitly confirm if you want me to move it.`, { draft }); });
 
     server.registerTool("confirm_booking_change", {
       title: "Confirm appointment change",
@@ -110,7 +110,7 @@ export function buildMcpHandler(domain: EmployeeDomain, ringEnabled = false, res
       inputSchema: ConfirmBookingChangeInputSchema,
       outputSchema: jsonOutput,
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
-    }, async (input) => { const booking = domain.confirmBookingChange(userId, input); return toolResult(`Your visit is now scheduled for ${booking.scheduledStart}.`, { booking }); });
+    }, async (input) => { const booking = await domain.confirmBookingChange(userId, input); return toolResult(`Your visit is now scheduled for ${booking.scheduledStart}.`, { booking }); });
 
     server.registerTool("prepare_booking_cancellation", {
       title: "Prepare appointment cancellation",
@@ -118,7 +118,7 @@ export function buildMcpHandler(domain: EmployeeDomain, ringEnabled = false, res
       inputSchema: PrepareBookingCancellationInputSchema,
       outputSchema: jsonOutput,
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
-    }, async (input) => { const draft = domain.prepareBookingCancellation(userId, input); return toolResult(`${draft.summary} Please explicitly confirm if you want me to cancel it.`, { draft }); });
+    }, async (input) => { const draft = await domain.prepareBookingCancellation(userId, input); return toolResult(`${draft.summary} Please explicitly confirm if you want me to cancel it.`, { draft }); });
 
     server.registerTool("confirm_booking_cancellation", {
       title: "Confirm appointment cancellation",
@@ -126,7 +126,7 @@ export function buildMcpHandler(domain: EmployeeDomain, ringEnabled = false, res
       inputSchema: ConfirmBookingInputSchema,
       outputSchema: jsonOutput,
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
-    }, async (input) => { const booking = domain.confirmBookingCancellation(userId, input); return toolResult(`Your ${booking.providerName} visit has been cancelled.`, { booking }); });
+    }, async (input) => { const booking = await domain.confirmBookingCancellation(userId, input); return toolResult(`Your ${booking.providerName} visit has been cancelled.`, { booking }); });
 
     server.registerTool("get_service_status", {
       title: "Get service status",
