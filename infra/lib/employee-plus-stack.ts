@@ -63,7 +63,19 @@ export class EmployeePlusStack extends cdk.Stack {
     executionRole.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName("service-role/AmazonECSTaskExecutionRolePolicy"));
     const infrastructureRole = new iam.Role(this, "InfrastructureRole", { assumedBy: new iam.ServicePrincipal("ecs.amazonaws.com") });
     infrastructureRole.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName("service-role/AmazonECSInfrastructureRoleforExpressGatewayServices"));
+    const githubOidcProvider = new iam.OpenIdConnectProvider(this, "GitHubActionsOidcProvider", {
+      url: "https://token.actions.githubusercontent.com",
+      clientIds: ["sts.amazonaws.com"],
+    });
+    const githubActionsRole = new iam.Role(this, "GitHubActionsRole", {
+      roleName: "employee-plus-github-actions",
+      assumedBy: new iam.FederatedPrincipal(githubOidcProvider.openIdConnectProviderArn, {
+        StringEquals: { "token.actions.githubusercontent.com:aud": "sts.amazonaws.com" },
+        StringLike: { "token.actions.githubusercontent.com:sub": "repo:Akunimal/employee-plus:ref:refs/heads/main" },
+      }, "sts:AssumeRoleWithWebIdentity"),
+    });
     repository.grantPull(executionRole);
+    repository.grantPullPush(githubActionsRole);
     draftSecret.grantRead(executionRole);
     table.grantReadWriteData(runtimeRole); documents.grantReadWrite(runtimeRole); events.grantSendMessages(runtimeRole); key.grantEncryptDecrypt(runtimeRole); key.grantEncryptDecrypt(executionRole);
     runtimeRole.addToPolicy(new iam.PolicyStatement({ actions: ["bedrock:InvokeModel"], resources: [`arn:aws:bedrock:${this.region}::foundation-model/amazon.nova-lite-v1:0`] }));
@@ -105,6 +117,7 @@ export class EmployeePlusStack extends cdk.Stack {
     new cdk.CfnOutput(this, "McpRepositoryUri", { value: repository.repositoryUri });
     new cdk.CfnOutput(this, "LogGroupName", { value: logGroup.logGroupName });
     new cdk.CfnOutput(this, "RuntimeRoleArn", { value: runtimeRole.roleArn });
+    new cdk.CfnOutput(this, "GitHubActionsRoleArn", { value: githubActionsRole.roleArn });
     new cdk.CfnOutput(this, "CognitoUserPoolId", { value: userPool.userPoolId });
     new cdk.CfnOutput(this, "CognitoClientId", { value: client.userPoolClientId });
     new cdk.CfnOutput(this, "ServiceArn", { value: service?.attrServiceArn ?? "service-disabled-until-image-is-pushed" });
