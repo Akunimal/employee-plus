@@ -1,0 +1,5 @@
+.serena/
+**/dist/
+**/cdk.out*/
+coverage/
+node_modules/

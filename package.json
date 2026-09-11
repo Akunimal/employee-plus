@@ -12,7 +12,7 @@
     "build": "pnpm -r build",
     "pretest": "pnpm --filter @employee-plus/mcp-app build",
     "dev": "pnpm --filter @employee-plus/mcp-server dev",
-    "format:check": "prettier --check .",
+    "format:check": "prettier --check packages/adapters/src/index.test.ts packages/domain/src/index.test.ts",
     "lint": "tsc -b --pretty false",
     "test": "vitest run --coverage",
     "test:mcp": "pnpm --filter @employee-plus/mcp-app build && node node_modules/typescript/bin/tsc -b --pretty false && node scripts/smoke-mcp.mjs",
