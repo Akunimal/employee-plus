@@ -58,6 +58,7 @@ export class EmployeePlusStack extends cdk.Stack {
     const manageScope = new cognito.ResourceServerScope({ scopeName: "manage", scopeDescription: "Manage appointments" });
     const resourceServer = userPool.addResourceServer("EmployeePlusResourceServer", { identifier: "employee", scopes: [readScope, manageScope] });
     const client = userPool.addClient("AlexaPlusClient", { generateSecret: false, oAuth: { flows: { authorizationCodeGrant: true }, scopes: [cognito.OAuthScope.OPENID, cognito.OAuthScope.EMAIL, cognito.OAuthScope.resourceServer(resourceServer, readScope), cognito.OAuthScope.resourceServer(resourceServer, manageScope)] } });
+    const cognitoDomain = userPool.addDomain("ManagedLoginDomain", { cognitoDomain: { domainPrefix: "employee-plus-796429457584" } });
     const runtimeRole = new iam.Role(this, "RuntimeRole", { assumedBy: new iam.ServicePrincipal("ecs-tasks.amazonaws.com") });
     const executionRole = new iam.Role(this, "ExecutionRole", { assumedBy: new iam.ServicePrincipal("ecs-tasks.amazonaws.com") });
     executionRole.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName("service-role/AmazonECSTaskExecutionRolePolicy"));
@@ -107,6 +108,7 @@ export class EmployeePlusStack extends cdk.Stack {
     new cdk.CfnOutput(this, "RuntimeRoleArn", { value: runtimeRole.roleArn });
     new cdk.CfnOutput(this, "CognitoUserPoolId", { value: userPool.userPoolId });
     new cdk.CfnOutput(this, "CognitoClientId", { value: client.userPoolClientId });
+    new cdk.CfnOutput(this, "CognitoDomain", { value: cognitoDomain.domainName });
     new cdk.CfnOutput(this, "ServiceArn", { value: service?.attrServiceArn ?? "service-disabled-until-image-is-pushed" });
     new cdk.CfnOutput(this, "ServiceEndpoint", { value: service?.attrEndpoint ?? "service-disabled-until-image-is-pushed" });
   }

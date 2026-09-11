@@ -11,17 +11,17 @@
     "Ask Employee Plus for my service document."
   ],
   "locale": "en-US",
-  "endpoint": "https://employee-plus.example/mcp",
+  "endpoint": "https://em-6b89df16691a48baa3d609a935379774.ecs.us-east-2.on.aws/mcp",
   "privacyAndCompliance": {
-    "privacyPolicyUrl": "https://employee-plus.example/privacy",
-    "termsOfUseUrl": "https://employee-plus.example/terms"
+    "privacyPolicyUrl": "https://em-6b89df16691a48baa3d609a935379774.ecs.us-east-2.on.aws/privacy",
+    "termsOfUseUrl": "https://em-6b89df16691a48baa3d609a935379774.ecs.us-east-2.on.aws/terms"
   },
-  "privacyPolicyUrl": "https://employee-plus.example/privacy",
-  "termsOfUseUrl": "https://employee-plus.example/terms",
+  "privacyPolicyUrl": "https://em-6b89df16691a48baa3d609a935379774.ecs.us-east-2.on.aws/privacy",
+  "termsOfUseUrl": "https://em-6b89df16691a48baa3d609a935379774.ecs.us-east-2.on.aws/terms",
   "accountLinking": {
-    "authorizationUrl": "https://employee-plus.example/oauth2/authorize",
-    "accessTokenUri": "https://employee-plus.example/oauth2/token",
-    "clientId": "configured-at-deploy-time",
+    "authorizationUrl": "https://employee-plus-796429457584.auth.us-east-2.amazoncognito.com/oauth2/authorize",
+    "accessTokenUri": "https://employee-plus-796429457584.auth.us-east-2.amazoncognito.com/oauth2/token",
+    "clientId": "64o8ddrj17n41j28rpjlaupvpu",
     "scopes": ["mcp:service", "mcp:tools", "mcp:resources", "employee:read", "employee:manage"],
     "pkce": "S256"
   },
