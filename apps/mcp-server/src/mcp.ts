@@ -137,8 +137,8 @@ export function buildMcpHandler(domain: EmployeeDomain, ringEnabled = false) {
         inputSchema: z.object({ eventId: z.string() }),
         outputSchema: jsonOutput,
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
-      }, async ({ eventId }) => toolResult("I can provide timing context, but I cannot verify who is at the door.", { eventId }));
-      server.registerResource("arrival", new ResourceTemplate("employee://arrivals/{eventId}", { list: undefined }), { title: "Employee+ arrival context", mimeType: "application/json" }, async (uri) => ({ contents: [{ uri: uri.href, mimeType: "application/json", text: JSON.stringify({ message: "Arrival context is available only for validated Ring events." }) }] }));
+      }, async ({ eventId }) => { const context = domain.getRingArrivalContext(userId, eventId); return toolResult(context.message, { context }); });
+      server.registerResource("arrival", new ResourceTemplate("employee://arrivals/{eventId}", { list: undefined }), { title: "Employee+ arrival context", mimeType: "application/json" }, async (uri, variables) => { const context = domain.getRingArrivalContext(userId, String(variables.eventId)); return { contents: [{ uri: uri.href, mimeType: "application/json", text: JSON.stringify(context) }] }; });
     }
 
     return server;

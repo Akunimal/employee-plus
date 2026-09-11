@@ -16,5 +16,6 @@ Thumbs.db
 # Local analysis and generated evidence
 graphify-out/
 graphify-alexa-analysis/
+cdk.out/
 artifacts/local/
 tmp/

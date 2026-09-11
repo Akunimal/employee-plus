@@ -1,0 +1,8 @@
+.git
+.planning
+node_modules
+**/dist
+**/coverage
+cdk.out
+graphify-alexa-analysis
+.env*

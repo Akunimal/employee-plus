@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://employee-plus.example/schemas/tool-result.schema.json",
+  "title": "Employee+ MCP tool result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["text", "data"],
+  "properties": {
+    "text": { "type": "string", "minLength": 1 },
+    "data": { "type": "object", "additionalProperties": true }
+  }
+}

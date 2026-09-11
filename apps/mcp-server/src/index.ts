@@ -2,12 +2,14 @@ import { createServer } from "node:http";
 import { EmployeeDomain, createFixtureStore } from "@employee-plus/domain";
 import { toNodeHandler } from "@modelcontextprotocol/node";
 import { buildMcpHandler } from "./mcp.js";
+import { parseRingWebhook, RingWebhookDeduplicator, verifyRingWebhookSignature } from "@employee-plus/adapters";
 
 const domain = new EmployeeDomain(createFixtureStore());
 const port = Number(process.env.PORT ?? 3000);
 const ringEnabled = process.env.RING_ENABLED === "true" && process.env.RING_TEST_ACCOUNT_CONNECTED === "true";
 const mcpHandler = buildMcpHandler(domain, ringEnabled);
 const mcpNodeHandler = toNodeHandler(mcpHandler);
+const ringDedupe = new RingWebhookDeduplicator();
 
 function writeJson(response: import("node:http").ServerResponse, status: number, body: Record<string, unknown>) {
   response.writeHead(status, { "content-type": "application/json" });
@@ -20,7 +22,17 @@ function validOrigin(origin: string | undefined) {
   catch { return false; }
 }
 
-const server = createServer((request, response) => {
+function readBody(request: import("node:http").IncomingMessage, maxBytes = 1_000_000): Promise<string> {
+  return new Promise((resolve, reject) => {
+    let body = "";
+    request.setEncoding("utf8");
+    request.on("data", (chunk: string) => { body += chunk; if (Buffer.byteLength(body) > maxBytes) reject(new Error("Payload too large.")); });
+    request.on("end", () => resolve(body));
+    request.on("error", reject);
+  });
+}
+
+const server = createServer(async (request, response) => {
   if (request.url === "/health/live") {
     response.writeHead(200, { "content-type": "application/json" });
     response.end(JSON.stringify({ status: "ok", service: "employee-plus" }));
@@ -39,6 +51,21 @@ const server = createServer((request, response) => {
   if (request.url === "/mcp") {
     if (!validOrigin(request.headers.origin)) { writeJson(response, 403, { code: "INVALID_ORIGIN", message: "Origin is not allowed." }); return; }
     mcpNodeHandler(request, response);
+    return;
+  }
+  if (request.url === "/webhooks/ring" && ringEnabled) {
+    if (request.method !== "POST") { response.writeHead(405, { allow: "POST" }); response.end(); return; }
+    const body = await readBody(request).catch(() => null);
+    const secret = process.env.RING_WEBHOOK_SECRET;
+    const signatureHeader = request.headers["x-ring-signature"];
+    const signature = Array.isArray(signatureHeader) ? signatureHeader[0] : signatureHeader ?? "";
+    if (!body || !secret || !verifyRingWebhookSignature(body, signature, secret)) { writeJson(response, 403, { code: "INVALID_RING_SIGNATURE", message: "Ring event signature is invalid." }); return; }
+    try {
+      const event = parseRingWebhook(body);
+      if (!ringDedupe.accept(event.eventId)) { writeJson(response, 202, { accepted: true, duplicate: true }); return; }
+      domain.correlateRingEvent(process.env.RING_TEST_USER_ID ?? "demo-user", event);
+      writeJson(response, 202, { accepted: true });
+    } catch { writeJson(response, 400, { code: "INVALID_RING_EVENT", message: "Ring event payload is invalid." }); }
     return;
   }
   if (request.url === "/.well-known/oauth-protected-resource") {

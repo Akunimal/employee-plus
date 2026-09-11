@@ -4,7 +4,7 @@ This document is the execution contract for the greenfield Employee+ implementat
 
 ## M0 — Public greenfield foundation
 
-Status: complete when the initial public commit is pushed.
+Status: complete. The initial public commit is pushed.
 
 - Public repository under `Akunimal/employee-plus`.
 - English README, Apache-2.0 license, security and contribution policy.
@@ -24,7 +24,7 @@ Deadline: before the first implementation week is completed.
 
 If this gate fails, Ring remains disabled and no Ring claim is included in the submission. Alexa+ remains the complete primary delivery.
 
-## M1 — Contracts and deterministic domain
+## M1 — Contracts and deterministic domain — COMPLETE
 
 - Define Zod/JSON Schema contracts for the home-care tools.
 - Implement synthetic homes, assets, providers, quotes, bookings, and simulated documents.
@@ -34,7 +34,7 @@ Gate: contract, unit, and state-machine tests pass.
 
 Commit: `feat(contracts): define Employee+ consumer workflows`
 
-## M2 — MCP server
+## M2 — MCP server — LOCAL COMPLETE / REMOTE HARDENING PENDING
 
 - Expose the contracts through MCP SDK 2.x.
 - Serve Streamable HTTP at `/mcp`.
@@ -43,6 +43,8 @@ Commit: `feat(contracts): define Employee+ consumer workflows`
 - Add resources and a health/readiness surface.
 
 Gate: MCP Inspector can list and invoke every published tool.
+
+Local evidence: `initialize`, `tools/list`, and `tools/call` passed against `/mcp` with `MCP-Protocol-Version: 2025-11-25`. The conditional Ring tool is absent unless both Ring flags are true.
 
 Commit: `feat(mcp): expose Employee+ through Streamable HTTP`
 
@@ -92,4 +94,3 @@ Commits:
 - `docs: prepare Amazon Developer Hackathon submission`
 
 Internal freeze: 22 October 2026, 18:00 ART.
-

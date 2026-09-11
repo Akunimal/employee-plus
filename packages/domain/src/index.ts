@@ -29,6 +29,7 @@ export interface DomainStore {
   drafts: Map<string, Draft>;
   idempotency: Map<string, unknown>;
   ringEvents: Map<string, RingEvent>;
+  ringContexts: Map<string, RingArrivalContext>;
 }
 
 export interface RingEvent {
@@ -54,7 +55,7 @@ export function createFixtureStore(): DomainStore {
     { slotId: "slot_tomorrow_1300", startsAt: "2026-09-11T13:00:00.000Z", endsAt: "2026-09-11T14:30:00.000Z", timezone: "America/New_York" },
     { slotId: "slot_friday_1000", startsAt: "2026-09-12T10:00:00.000Z", endsAt: "2026-09-12T11:30:00.000Z", timezone: "America/New_York" },
   ];
-  return { assets: new Map(assets.map((item) => [item.assetId, item])), options: new Map(options.map((item) => [item.optionId, item])), slots: new Map(slots.map((item) => [item.slotId, item])), bookings: new Map(), documents: new Map(), drafts: new Map(), idempotency: new Map(), ringEvents: new Map() };
+  return { assets: new Map(assets.map((item) => [item.assetId, item])), options: new Map(options.map((item) => [item.optionId, item])), slots: new Map(slots.map((item) => [item.slotId, item])), bookings: new Map(), documents: new Map(), drafts: new Map(), idempotency: new Map(), ringEvents: new Map(), ringContexts: new Map() };
 }
 
 export class EmployeeDomain {
@@ -147,8 +148,12 @@ export class EmployeeDomain {
     this.store.ringEvents.set(event.eventId, event);
     const eventTime = Date.parse(event.occurredAt);
     const booking = [...this.store.bookings.values()].find((candidate) => candidate.userId === userId && candidate.status !== "cancelled" && Math.abs(Date.parse(candidate.scheduledStart) - eventTime) <= 30 * 60 * 1000);
-    return { eventId: event.eventId, eventType: event.eventType, occurredAt: event.occurredAt, matchedBookingId: booking?.bookingId ?? null, message: booking ? `Your Ring detected activity during the scheduled service window. A ${booking.providerName} visit is expected now, but I can’t verify the person’s identity.` : "Your Ring detected activity, but it does not match a scheduled service window." };
+    const context: RingArrivalContext = { eventId: event.eventId, eventType: event.eventType, occurredAt: event.occurredAt, matchedBookingId: booking?.bookingId ?? null, message: booking ? `Your Ring detected activity during the scheduled service window. A ${booking.providerName} visit is expected now, but I can’t verify the person’s identity.` : "Your Ring detected activity, but it does not match a scheduled service window." };
+    this.store.ringContexts.set(`${userId}:${event.eventId}`, context);
+    return context;
   }
+
+  getRingArrivalContext(userId: string, eventId: string) { const context = this.store.ringContexts.get(`${userId}:${eventId}`); if (!context) throw new EmployeeError("NOT_FOUND", "That Ring event was not found."); return context; }
 
   private saveDraft(userId: string, operation: Draft["operation"], payload: Record<string, unknown>, summary: string, expectedVersion?: number): Draft {
     const payloadHash = createHash("sha256").update(JSON.stringify(payload)).digest("hex");

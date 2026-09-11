@@ -1,0 +1,18 @@
+{
+  "name": "employee-plus",
+  "displayName": "Employee+",
+  "description": "A consumer home-care concierge that helps organize maintenance, compare synthetic service options and manage appointments.",
+  "locale": "en-US",
+  "endpoint": "https://employee-plus.example/mcp",
+  "privacyPolicyUrl": "https://employee-plus.example/privacy",
+  "termsOfUseUrl": "https://employee-plus.example/terms",
+  "accountLinking": {
+    "authorizationUrl": "https://employee-plus.example/oauth2/authorize",
+    "accessTokenUri": "https://employee-plus.example/oauth2/token",
+    "clientId": "configured-at-deploy-time",
+    "scopes": ["mcp:service", "mcp:tools", "mcp:resources", "employee:read", "employee:manage"],
+    "pkce": "S256"
+  },
+  "tracks": ["Alexa+"],
+  "ring": { "publishedOnlyWhen": "RING_ENABLED=true and RING_TEST_ACCOUNT_CONNECTED=true" }
+}

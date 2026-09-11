@@ -6,7 +6,7 @@ The project is being built as a greenfield implementation for the Amazon Develop
 
 ## Status
 
-Pre-alpha. The repository is intentionally initialized with the public product contract and delivery roadmap before implementation begins.
+The local vertical slice is executable: strict contracts, deterministic workflows, two-step confirmation, idempotent booking, a real MCP Streamable HTTP endpoint, Ring webhook primitives, a MCP App board, and a CDK infrastructure scaffold. AWS account linking and the official Ring gate remain environment-dependent.
 
 ## Planned experience
 
@@ -28,7 +28,19 @@ Employee+ is implemented from scratch in this repository. Personal projects may 
 
 See [ROADMAP.md](ROADMAP.md) for milestones, gates, testing requirements, Ring eligibility checks, and submission preparation.
 
+## Local verification
+
+```powershell
+pnpm install --ignore-scripts
+node node_modules/typescript/bin/tsc -b --pretty false
+node node_modules/vitest/vitest.mjs run --config vitest.config.ts
+node node_modules/typescript/bin/tsc -p apps/mcp-app/tsconfig.json --pretty false
+pnpm --filter @employee-plus/mcp-app exec vite build
+pnpm dev
+```
+
+The local MCP endpoint is `http://localhost:3000/mcp`. The fixture transport accepts `x-employee-user-id` for development only; production must use the planned Cognito OAuth boundary.
+
 ## License
 
 Apache-2.0. See [LICENSE](LICENSE).
-
