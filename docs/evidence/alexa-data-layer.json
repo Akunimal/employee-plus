@@ -1,0 +1,14 @@
+{
+  "capturedAt": "2026-09-11",
+  "source": "scripts/smoke-mcp.mjs",
+  "environment": "local Docker smoke test",
+  "tool": "get_home_brief",
+  "user": "sanitized-smoke-user",
+  "checks": {
+    "structuredContentPresent": true,
+    "dueAssetsPresent": true,
+    "naturalLanguageContentPresent": true,
+    "confirmationRequiredForMutations": true
+  },
+  "note": "This is MCP data-layer evidence. Official Alexa+ Local Inspector and Web Simulator evidence requires an HTTPS development endpoint and Alexa developer access."
+}

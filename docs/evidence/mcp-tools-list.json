@@ -1,0 +1,25 @@
+{
+  "capturedAt": "2026-09-11",
+  "source": "scripts/smoke-mcp.mjs",
+  "environment": "local Docker smoke test",
+  "protocol": "2025-11-25",
+  "toolCount": 13,
+  "tools": [
+    "get_home_brief",
+    "list_home_assets",
+    "search_service_options",
+    "check_service_availability",
+    "compare_quotes",
+    "prepare_booking",
+    "confirm_booking",
+    "prepare_booking_change",
+    "confirm_booking_change",
+    "prepare_booking_cancellation",
+    "confirm_booking_cancellation",
+    "get_service_status",
+    "get_service_document"
+  ],
+  "uiResourceUriVerified": "ui://employee/home-care-board",
+  "originValidation": "passed",
+  "oauthProtectedResourceMetadata": "passed"
+}

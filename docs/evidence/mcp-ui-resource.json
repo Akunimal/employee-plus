@@ -1,0 +1,18 @@
+{
+  "capturedAt": "2026-09-11",
+  "source": "scripts/smoke-mcp.mjs",
+  "resourceUri": "ui://employee/home-care-board",
+  "mimeType": "text/html;profile=mcp-app",
+  "resourceMetadata": {
+    "prefersBorder": false,
+    "connectDomains": [],
+    "resourceDomains": []
+  },
+  "checks": {
+    "resourcesList": "passed",
+    "resourcesRead": "passed",
+    "containsEmployeePlus": true,
+    "selfContainedHtml": true,
+    "externalScriptOrStylesheetReferences": false
+  }
+}
