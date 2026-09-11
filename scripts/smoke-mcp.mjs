@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 
-const server = spawn(process.execPath, ["apps/mcp-server/dist/index.js"], { stdio: ["ignore", "pipe", "pipe"], env: { ...process.env, NODE_ENV: "test", PORT: "3210", COGNITO_DOMAIN: "employee-plus-test.auth.us-east-2.amazoncognito.com" } });
+const server = spawn(process.execPath, ["apps/mcp-server/dist/index.js"], { stdio: ["ignore", "pipe", "pipe"], env: { ...process.env, NODE_ENV: "test", PORT: "3210", COGNITO_ISSUER: "https://cognito-idp.us-east-2.amazonaws.com/us-east-2_test" } });
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const request = async (body, headers = {}) => {
   const response = await fetch("http://127.0.0.1:3210/mcp", { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream", "MCP-Protocol-Version": "2025-11-25", "x-employee-user-id": "smoke-user", ...headers }, body: JSON.stringify(body) });
@@ -18,7 +18,7 @@ try {
   if (initialized.payload.result?.protocolVersion !== "2025-11-25") throw new Error("MCP protocol negotiation failed.");
   const metadataResponse = await fetch("http://127.0.0.1:3210/.well-known/oauth-protected-resource");
   const metadata = await metadataResponse.json();
-  if (metadataResponse.status !== 200 || metadata.resource !== "https://127.0.0.1:3210/mcp" || metadata.authorization_servers?.[0] !== "https://employee-plus-test.auth.us-east-2.amazoncognito.com") throw new Error("OAuth protected-resource metadata is not aligned.");
+  if (metadataResponse.status !== 200 || metadata.resource !== "https://127.0.0.1:3210/mcp" || metadata.authorization_servers?.[0] !== "https://cognito-idp.us-east-2.amazonaws.com/us-east-2_test") throw new Error("OAuth protected-resource metadata is not aligned.");
   const listed = await request({ jsonrpc: "2.0", id: 2, method: "tools/list", params: {} });
   const names = listed.payload.result.tools.map((tool) => tool.name);
   if (names.length !== 13 || !names.includes("confirm_booking") || !names.includes("confirm_booking_cancellation")) throw new Error(`Unexpected base tool registry: ${names.join(", ")}`);
