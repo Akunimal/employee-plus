@@ -1,0 +1,15 @@
+{
+  "capturedAt": "2026-09-11",
+  "source": "scripts/smoke-remote.mjs",
+  "environment": "ECS Express Mode remote smoke test",
+  "region": "us-east-2",
+  "imageTag": "cdb331d",
+  "checks": {
+    "healthLive": "passed",
+    "healthReady": "passed",
+    "oauthProtectedResourceMetadata": "passed",
+    "invalidOriginRejected": "passed",
+    "anonymousMcpRejected": "passed"
+  },
+  "authenticatedInspector": "blocked until Amazon enables Alexa+ MCP Preview for the account"
+}

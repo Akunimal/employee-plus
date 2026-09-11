@@ -27,3 +27,19 @@ metadata, the self-contained `ui://employee/home-care-board` resource, and the
 tokens in this local test.
 
 Before submission, add MCP Inspector and Alexa+ Local Inspector artifacts under `docs/evidence/` after sanitizing account, token, address and device identifiers. The security matrix must cover invalid input, unauthorized access, cross-user reads, replay, idempotency, stale version and dependency failure for every tool.
+
+## Remote deployment smoke test
+
+The deployed service can be checked without credentials. This validates the
+public health and OAuth metadata routes, rejects an untrusted Origin, and
+confirms that MCP is not anonymously accessible:
+
+```powershell
+$env:EMPLOYEE_PLUS_ENDPOINT = "https://<service-endpoint>"
+pnpm test:remote
+Remove-Item Env:EMPLOYEE_PLUS_ENDPOINT
+```
+
+Authenticated `tools/list`, `resources/list` and `resources/read` remain gated
+on a Cognito test user or the Alexa+ Preview account. Do not bypass that gate
+with fabricated tokens.

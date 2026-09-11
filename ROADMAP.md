@@ -34,7 +34,7 @@ Gate: contract, unit, and state-machine tests pass.
 
 Commit: `feat(contracts): define Employee+ consumer workflows`
 
-## M2 — MCP server — LOCAL COMPLETE / REMOTE HARDENING PENDING
+## M2 — MCP server — COMPLETE
 
 - Expose the contracts through MCP SDK 2.x.
 - Serve Streamable HTTP at `/mcp`.
@@ -46,29 +46,38 @@ Gate: MCP Inspector can list and invoke every published tool.
 
 Local evidence: `initialize`, `tools/list`, and `tools/call` passed against `/mcp` with `MCP-Protocol-Version: 2025-11-25`. The conditional Ring tool is absent unless both Ring flags are true.
 
+Remote evidence: the deployed endpoint passes live/ready checks, publishes
+OAuth protected-resource metadata, rejects invalid Origin with `403`, and
+rejects anonymous MCP with `401`.
+
 Commit: `feat(mcp): expose Employee+ through Streamable HTTP`
 
-## M3 — AWS and account linking — FOUNDATION DEPLOYED / INTEGRATION PENDING
+## M3 — AWS and account linking — DEPLOYED / ALEXA PREVIEW BLOCKED
 
 - Deploy the server to ECS Express Mode through an immutable ECR image.
 - Add Cognito Authorization Code + PKCE S256.
 - Add DynamoDB persistence, Streams, EventBridge Pipes, SQS/DLQ, Lambda, S3, KMS, Secrets Manager, CloudWatch, and X-Ray.
 - Keep Bedrock asynchronous and outside the critical transaction path.
 
-Foundation gate progress: CDK bootstrap and the encrypted data plane are deployed in `us-east-2`. The ECS service remains disabled until a verified immutable container image exists in ECR. The application still needs real Cognito JWT validation and DynamoDB-backed state before that service is exposed.
+Foundation gate progress: the encrypted data plane and ECS Express Mode service
+are deployed in `us-east-2` with immutable image tag `cdb331d`. Production
+runtime uses Cognito JWT validation and DynamoDB-backed state. Alexa+ account
+linking cannot be completed until Amazon enables this account for MCP Preview.
 
 Gate: remote HTTPS endpoint, linked-user isolation, reproducible CDK deployment, and failure recovery.
 
 Commit: `feat(aws): deploy secure event-driven infrastructure`
 
-## M4 — Alexa+ and MCP App
+## M4 — Alexa+ and MCP App — CODE READY / PREVIEW ACCESS PENDING
 
 - Create the Alexa+ MCP Toolkit package with the official CLI/Agent Skill.
 - Add account-linking metadata, store text, privacy URL, terms URL, icon, carousel image, and four tested phrases.
 - Build the Home Care Board using MCP Apps.
 - Support voice-only, small display, large display, light mode, and dark mode.
 
-Gate: development add-on deployed and every advertised capability works.
+Gate: development add-on deployed and every advertised capability works. The
+code and remote MCP endpoint are ready; Amazon Preview enablement is the only
+external blocker for the official Alexa+ inspectors and Web Simulator.
 
 Commit: `feat(alexa): add Employee+ multimodal experience`
 
