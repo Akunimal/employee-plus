@@ -41,7 +41,6 @@ export class EmployeePlusStack extends cdk.Stack {
     enrichment.addEventSource(new eventSources.SqsEventSource(events, { batchSize: 10, reportBatchItemFailures: true }));
 
     const service = new apprunner.CfnService(this, "McpService", { serviceName: "employee-plus-mcp", sourceConfiguration: { autoDeploymentsEnabled: false, authenticationConfiguration: { accessRoleArn: appRunnerAccessRole.roleArn }, imageRepository: { imageIdentifier: `${repository.repositoryUri}:latest`, imageRepositoryType: "ECR", imageConfiguration: { port: "3000", runtimeEnvironmentVariables: [{ name: "NODE_ENV", value: "production" }, { name: "RING_ENABLED", value: "false" }] } } }, instanceConfiguration: { cpu: "1 vCPU", memory: "2 GB", instanceRoleArn: runtimeRole.roleArn }, healthCheckConfiguration: { path: "/health/ready", protocol: "HTTP", interval: 10, timeout: 5, healthyThreshold: 2, unhealthyThreshold: 5 } });
-    service.addResourceDependency(repository);
 
     new cdk.CfnOutput(this, "StateTableName", { value: table.tableName });
     new cdk.CfnOutput(this, "EventsQueueUrl", { value: events.queueUrl });
