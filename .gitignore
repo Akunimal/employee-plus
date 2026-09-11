@@ -2,6 +2,7 @@ node_modules/
 dist/
 build/
 coverage/
+*.tsbuildinfo
 .env
 .env.*
 !.env.example
@@ -17,4 +18,3 @@ graphify-out/
 graphify-alexa-analysis/
 artifacts/local/
 tmp/
-
