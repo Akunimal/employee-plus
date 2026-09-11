@@ -3,6 +3,7 @@
 node_modules
 **/dist
 **/coverage
+**/*.tsbuildinfo
 cdk.out
 graphify-alexa-analysis
 .env*

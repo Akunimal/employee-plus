@@ -21,8 +21,11 @@ if (-not $repoUri) {
 $tag = (git rev-parse HEAD).Trim()
 $registry = $repoUri.Split("/")[0]
 aws ecr get-login-password --profile $Profile --region $Region | docker login --username AWS --password-stdin $registry
+if ($LASTEXITCODE -ne 0) { throw "ECR authentication failed." }
 docker build --tag "${repoUri}:${tag}" .
+if ($LASTEXITCODE -ne 0) { throw "Docker image build failed." }
 docker push "${repoUri}:${tag}"
+if ($LASTEXITCODE -ne 0) { throw "ECR image push failed." }
 
 $env:AWS_PROFILE = $Profile
 $env:CDK_DEFAULT_ACCOUNT = $account
@@ -30,6 +33,10 @@ $env:CDK_DEFAULT_REGION = $Region
 $env:DEPLOY_SERVICE = "true"
 $env:IMAGE_TAG = $tag
 pnpm --filter @employee-plus/infra exec cdk deploy EmployeePlusStack --profile $Profile --require-approval never
+if ($LASTEXITCODE -ne 0) { throw "AWS CDK deployment failed." }
 
 $serviceEndpoint = (aws cloudformation describe-stacks --profile $Profile --region $Region --stack-name EmployeePlusStack --query "Stacks[0].Outputs[?OutputKey=='ServiceEndpoint'].OutputValue" --output text).Trim()
+if (-not $serviceEndpoint -or $serviceEndpoint -eq "service-disabled-until-image-is-pushed") {
+  throw "ECS service endpoint was not created."
+}
 Write-Output "Employee+ ECS endpoint: $serviceEndpoint"
