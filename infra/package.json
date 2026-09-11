@@ -5,5 +5,5 @@
   "type": "module",
   "scripts": { "build": "tsc -b", "synth": "cdk synth" },
   "dependencies": { "aws-cdk-lib": "^2.269.0", "constructs": "^10.4.2" },
-  "devDependencies": { "@types/node": "^24.0.0", "aws-cdk": "^2.1033.0", "typescript": "^5.9.3" }
+  "devDependencies": { "@types/node": "^26.5.0", "aws-cdk": "^2.1033.0", "typescript": "^5.9.3" }
 }
