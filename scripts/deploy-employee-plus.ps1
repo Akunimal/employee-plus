@@ -20,7 +20,9 @@ if (-not $repoUri) {
 
 $tag = (git rev-parse HEAD).Trim()
 $registry = $repoUri.Split("/")[0]
-aws ecr get-login-password --profile $Profile --region $Region | docker login --username AWS --password-stdin $registry
+$ecrPassword = aws ecr get-login-password --profile $Profile --region $Region
+if ($LASTEXITCODE -ne 0 -or -not $ecrPassword) { throw "Unable to obtain ECR login credentials." }
+$ecrPassword | docker login --username AWS --password-stdin $registry
 if ($LASTEXITCODE -ne 0) { throw "ECR authentication failed." }
 docker build --tag "${repoUri}:${tag}" .
 if ($LASTEXITCODE -ne 0) { throw "Docker image build failed." }
