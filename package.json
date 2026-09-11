@@ -14,6 +14,7 @@
     "format:check": "prettier --check .",
     "lint": "tsc -b --pretty false",
     "test": "vitest run --coverage",
+    "test:mcp": "node node_modules/typescript/bin/tsc -b --pretty false && node scripts/smoke-mcp.mjs",
     "test:watch": "vitest",
     "typecheck": "tsc -b --pretty false"
   },

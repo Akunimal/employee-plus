@@ -25,6 +25,7 @@ jobs:
       - run: node node_modules/typescript/bin/tsc -p apps/mcp-app/tsconfig.json --pretty false
       - run: node node_modules/typescript/bin/tsc -p infra/tsconfig.json --pretty false
       - run: node node_modules/vitest/vitest.mjs run --config vitest.config.ts
+      - run: pnpm test:mcp
       - run: pnpm --filter @employee-plus/mcp-app exec vite build
 
   container:

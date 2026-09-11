@@ -34,6 +34,7 @@ See [ROADMAP.md](ROADMAP.md) for milestones, gates, testing requirements, Ring e
 pnpm install --ignore-scripts
 node node_modules/typescript/bin/tsc -b --pretty false
 node node_modules/vitest/vitest.mjs run --config vitest.config.ts
+pnpm test:mcp
 node node_modules/typescript/bin/tsc -p apps/mcp-app/tsconfig.json --pretty false
 pnpm --filter @employee-plus/mcp-app exec vite build
 pnpm dev

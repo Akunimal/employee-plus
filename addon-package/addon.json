@@ -2,8 +2,20 @@
   "name": "employee-plus",
   "displayName": "Employee+",
   "description": "A consumer home-care concierge that helps organize maintenance, compare synthetic service options and manage appointments.",
+  "shortDescription": "Organize home maintenance, compare service options and manage visits with Employee+.",
+  "fullDescription": "Employee+ is a consumer home-care concierge. Ask what your home needs this week, compare synthetic service options, check availability, prepare a booking, confirm it explicitly, move only the date of an existing appointment, and retrieve a simulated service document. Providers, addresses and transactions are synthetic for this hackathon demo. Employee+ does not process payments, tax filings, identity verification, biometrics, video, audio or lock controls.",
+  "examplePhrases": [
+    "Ask Employee Plus what my home needs this week.",
+    "Ask Employee Plus to compare repair options.",
+    "Ask Employee Plus to move my service appointment.",
+    "Ask Employee Plus for my service document."
+  ],
   "locale": "en-US",
   "endpoint": "https://employee-plus.example/mcp",
+  "privacyAndCompliance": {
+    "privacyPolicyUrl": "https://employee-plus.example/privacy",
+    "termsOfUseUrl": "https://employee-plus.example/terms"
+  },
   "privacyPolicyUrl": "https://employee-plus.example/privacy",
   "termsOfUseUrl": "https://employee-plus.example/terms",
   "accountLinking": {
