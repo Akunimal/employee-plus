@@ -17,5 +17,7 @@ Thumbs.db
 graphify-out/
 graphify-alexa-analysis/
 cdk.out/
+infra/cdk.out-*/
+infra/infra/
 artifacts/local/
 tmp/

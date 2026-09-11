@@ -48,12 +48,14 @@ Local evidence: `initialize`, `tools/list`, and `tools/call` passed against `/mc
 
 Commit: `feat(mcp): expose Employee+ through Streamable HTTP`
 
-## M3 — AWS and account linking
+## M3 — AWS and account linking — FOUNDATION DEPLOYED / INTEGRATION PENDING
 
-- Deploy the server to App Runner through ECR.
+- Deploy the server to ECS Express Mode through an immutable ECR image.
 - Add Cognito Authorization Code + PKCE S256.
 - Add DynamoDB persistence, Streams, EventBridge Pipes, SQS/DLQ, Lambda, S3, KMS, Secrets Manager, CloudWatch, and X-Ray.
 - Keep Bedrock asynchronous and outside the critical transaction path.
+
+Foundation gate progress: CDK bootstrap and the encrypted data plane are deployed in `us-east-2`. The ECS service remains disabled until a verified immutable container image exists in ECR. The application still needs real Cognito JWT validation and DynamoDB-backed state before that service is exposed.
 
 Gate: remote HTTPS endpoint, linked-user isolation, reproducible CDK deployment, and failure recovery.
 

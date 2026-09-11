@@ -12,13 +12,13 @@ pnpm build
 pnpm test:mcp
 ```
 
-The smoke test negotiates MCP `2025-11-25`, discovers all 11 base tools, calls `get_home_brief`, and verifies that an untrusted Origin receives `403`.
+The smoke test negotiates MCP `2025-11-25`, discovers all 13 base tools, calls `get_home_brief`, and verifies that an untrusted Origin receives `403`.
 
 For interactive MCP validation, run the standard MCP Inspector against `http://127.0.0.1:3000/mcp`. If the official Alexa+ Local Inspector is available in the Alexa developer environment, run its CLI against the same local endpoint or its localhost proxy. Visual mode requires the UI resource and Playwright; data-layer mode does not.
 
 ## 2. Deploy a development endpoint
 
-Use the AWS CDK stack only after choosing the target account and an available region. The stack defaults to `us-east-2` for this account, but `CDK_DEFAULT_REGION` can override it; the hackathon does not require a particular AWS region. Push the container to ECR, deploy App Runner, and replace the example domain in `addon-package/addon.json` with the real HTTPS URL. Do not put tokens or personal addresses in traces.
+Use the AWS CDK stack only after choosing the target account and an available region. The stack defaults to `us-east-2` for this account, but `CDK_DEFAULT_REGION` can override it; the hackathon does not require a particular AWS region. Bootstrap the account, deploy the data plane with `DEPLOY_SERVICE=false`, push an immutable image tag to ECR, then deploy ECS Express Mode with `DEPLOY_SERVICE=true IMAGE_TAG=<git-sha>`. Replace the example domain in `addon-package/addon.json` with the returned HTTPS endpoint. Do not put tokens or personal addresses in traces.
 
 ## 3. Connect the add-on
 
@@ -38,7 +38,8 @@ Use the Alexa+ Web Simulator to exercise:
 1. “Ask Employee Plus what my home needs this week.”
 2. “Ask Employee Plus to compare repair options.”
 3. “Ask Employee Plus to move my service appointment.”
-4. Confirm that the appointment is changed only after an explicit confirmation.
+4. “Ask Employee Plus to cancel my service appointment.”
+5. Confirm that changes and cancellations occur only after explicit confirmation.
 
 If R0 and M5 pass with the official Ring simulator/API, add the Ring phrase and capture the temporal-match response. Otherwise test cancellation, the simulated document and audit evidence instead. A physical Alexa device is optional.
 
