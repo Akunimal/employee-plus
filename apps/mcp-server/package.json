@@ -1,0 +1,20 @@
+{
+  "name": "@employee-plus/mcp-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -b",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@employee-plus/contracts": "workspace:*",
+    "@employee-plus/domain": "workspace:*",
+    "@modelcontextprotocol/node": "2.0.0",
+    "@modelcontextprotocol/server": "2.0.0",
+    "zod": "4.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.4"
+  }
+}
