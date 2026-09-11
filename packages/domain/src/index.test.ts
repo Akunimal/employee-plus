@@ -54,4 +54,16 @@ describe("Employee+ home-service lifecycle", () => {
     expect(context.matchedBookingId).toBe(booking.bookingId);
     expect(context.message).toContain("can’t verify the person’s identity");
   });
+
+  it("cancels only after explicit confirmation and records an audit event", () => {
+    const store = createFixtureStore();
+    const domain = new EmployeeDomain(store);
+    const bookingDraft = domain.prepareBooking(userId, { assetId: "asset_water_heater", optionId: "option_northstar_standard", slotId: "slot_tomorrow_0900", addressLabel: "Home" });
+    const booking = domain.confirmBooking(userId, { draftId: bookingDraft.draftId, confirmationToken: bookingDraft.confirmationToken, payloadHash: bookingDraft.payloadHash, idempotencyKey: "book-request-0006" });
+    const cancelDraft = domain.prepareBookingCancellation(userId, { bookingId: booking.bookingId });
+    expect(cancelDraft.requiresExplicitConfirmation).toBe(true);
+    const cancelled = domain.confirmBookingCancellation(userId, { draftId: cancelDraft.draftId, confirmationToken: cancelDraft.confirmationToken, payloadHash: cancelDraft.payloadHash, idempotencyKey: "cancel-request-0001" });
+    expect(cancelled.status).toBe("cancelled");
+    expect(store.auditEvents.map((event) => event.action)).toContain("booking_cancelled");
+  });
 });

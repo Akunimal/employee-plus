@@ -8,11 +8,12 @@
     "dev": "tsx src/index.ts"
   },
   "dependencies": {
+    "@employee-plus/adapters": "workspace:*",
     "@employee-plus/contracts": "workspace:*",
     "@employee-plus/domain": "workspace:*",
-    "@employee-plus/adapters": "workspace:*",
     "@modelcontextprotocol/node": "2.0.0",
     "@modelcontextprotocol/server": "2.0.0",
+    "aws-jwt-verify": "^5.2.1",
     "zod": "4.6.2"
   },
   "devDependencies": {

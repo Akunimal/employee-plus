@@ -73,6 +73,8 @@ export class EmployeePlusStack extends cdk.Stack {
         environment: [
           { name: "NODE_ENV", value: "production" },
           { name: "RING_ENABLED", value: "false" },
+          { name: "COGNITO_USER_POOL_ID", value: userPool.userPoolId },
+          { name: "COGNITO_CLIENT_ID", value: client.userPoolClientId },
           { name: "STATE_TABLE_NAME", value: table.tableName },
           { name: "DOCUMENTS_BUCKET_NAME", value: documents.bucketName },
           { name: "EVENTS_QUEUE_URL", value: events.queueUrl },

@@ -18,7 +18,7 @@ try {
   if (initialized.payload.result?.protocolVersion !== "2025-11-25") throw new Error("MCP protocol negotiation failed.");
   const listed = await request({ jsonrpc: "2.0", id: 2, method: "tools/list", params: {} });
   const names = listed.payload.result.tools.map((tool) => tool.name);
-  if (names.length !== 11 || !names.includes("confirm_booking")) throw new Error(`Unexpected base tool registry: ${names.join(", ")}`);
+  if (names.length !== 13 || !names.includes("confirm_booking") || !names.includes("confirm_booking_cancellation")) throw new Error(`Unexpected base tool registry: ${names.join(", ")}`);
   const brief = await request({ jsonrpc: "2.0", id: 3, method: "tools/call", params: { name: "get_home_brief", arguments: {} } });
   if (!brief.payload.result?.structuredContent?.data?.dueAssets?.length) throw new Error("Home brief did not return due assets.");
   const rejected = await request({ jsonrpc: "2.0", id: 4, method: "tools/list", params: {} }, { origin: "https://untrusted.example" });

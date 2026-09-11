@@ -2,12 +2,13 @@ import { createServer } from "node:http";
 import { EmployeeDomain, createFixtureStore } from "@employee-plus/domain";
 import { toNodeHandler } from "@modelcontextprotocol/node";
 import { buildMcpHandler } from "./mcp.js";
+import { createUserResolver } from "./auth.js";
 import { parseRingWebhook, RingWebhookDeduplicator, verifyRingWebhookSignature } from "@employee-plus/adapters";
 
 const domain = new EmployeeDomain(createFixtureStore());
 const port = Number(process.env.PORT ?? 3000);
 const ringEnabled = process.env.RING_ENABLED === "true" && process.env.RING_TEST_ACCOUNT_CONNECTED === "true";
-const mcpHandler = buildMcpHandler(domain, ringEnabled);
+const mcpHandler = buildMcpHandler(domain, ringEnabled, createUserResolver());
 const mcpNodeHandler = toNodeHandler(mcpHandler);
 const ringDedupe = new RingWebhookDeduplicator();
 

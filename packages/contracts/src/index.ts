@@ -75,7 +75,7 @@ export type ServiceDocument = z.infer<typeof ServiceDocumentSchema>;
 export const DraftSchema = z.object({
   draftId: z.string().regex(/^draft_[a-z0-9_]+$/),
   userId: z.string().min(1),
-  operation: z.enum(["booking", "booking_change"]),
+  operation: z.enum(["booking", "booking_change", "booking_cancellation"]),
   payloadHash: z.string().regex(/^[a-f0-9]{64}$/),
   expectedVersion: z.number().int().positive().optional(),
   expiresAt: z.string().datetime(),
@@ -131,8 +131,15 @@ export const PrepareBookingChangeInputSchema = z.object({
 });
 export type PrepareBookingChangeInput = z.infer<typeof PrepareBookingChangeInputSchema>;
 
+export const PrepareBookingCancellationInputSchema = z.object({
+  bookingId: BookingSchema.shape.bookingId,
+});
+export type PrepareBookingCancellationInput = z.infer<typeof PrepareBookingCancellationInputSchema>;
+
 export const ConfirmBookingChangeInputSchema = ConfirmBookingInputSchema;
 export type ConfirmBookingChangeInput = z.infer<typeof ConfirmBookingChangeInputSchema>;
+export const ConfirmBookingCancellationInputSchema = ConfirmBookingInputSchema;
+export type ConfirmBookingCancellationInput = z.infer<typeof ConfirmBookingCancellationInputSchema>;
 
 export const QuoteSearchInputSchema = z.object({
   assetId: HomeAssetSchema.shape.assetId.optional(),

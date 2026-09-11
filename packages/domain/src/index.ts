@@ -4,11 +4,13 @@ import type {
   AvailabilitySlot,
   Booking,
   ConfirmBookingChangeInput,
+  ConfirmBookingCancellationInput,
   ConfirmBookingInput,
   Draft,
   HomeAsset,
   Money,
   PrepareBookingChangeInput,
+  PrepareBookingCancellationInput,
   PrepareBookingInput,
   QuoteSearchInput,
   RingArrivalContext,
@@ -30,12 +32,21 @@ export interface DomainStore {
   idempotency: Map<string, unknown>;
   ringEvents: Map<string, RingEvent>;
   ringContexts: Map<string, RingArrivalContext>;
+  auditEvents: AuditEvent[];
 }
 
 export interface RingEvent {
   eventId: string;
   deviceId: string;
   eventType: "doorbell_press" | "motion";
+  occurredAt: string;
+}
+
+export interface AuditEvent {
+  eventId: string;
+  userId: string;
+  action: "booking_created" | "booking_rescheduled" | "booking_cancelled" | "document_created" | "ring_correlated";
+  entityId: string;
   occurredAt: string;
 }
 
@@ -55,7 +66,7 @@ export function createFixtureStore(): DomainStore {
     { slotId: "slot_tomorrow_1300", startsAt: "2026-09-11T13:00:00.000Z", endsAt: "2026-09-11T14:30:00.000Z", timezone: "America/New_York" },
     { slotId: "slot_friday_1000", startsAt: "2026-09-12T10:00:00.000Z", endsAt: "2026-09-12T11:30:00.000Z", timezone: "America/New_York" },
   ];
-  return { assets: new Map(assets.map((item) => [item.assetId, item])), options: new Map(options.map((item) => [item.optionId, item])), slots: new Map(slots.map((item) => [item.slotId, item])), bookings: new Map(), documents: new Map(), drafts: new Map(), idempotency: new Map(), ringEvents: new Map(), ringContexts: new Map() };
+  return { assets: new Map(assets.map((item) => [item.assetId, item])), options: new Map(options.map((item) => [item.optionId, item])), slots: new Map(slots.map((item) => [item.slotId, item])), bookings: new Map(), documents: new Map(), drafts: new Map(), idempotency: new Map(), ringEvents: new Map(), ringContexts: new Map(), auditEvents: [] };
 }
 
 export class EmployeeDomain {
@@ -102,6 +113,7 @@ export class EmployeeDomain {
     const timestamp = nowIso();
     const booking: Booking = { bookingId: id("booking"), userId, assetId: payload.assetId, optionId: option.optionId, providerName: option.providerName, addressLabel: payload.addressLabel, scheduledStart: slot.startsAt, scheduledEnd: slot.endsAt, status: "scheduled", version: 1, createdAt: timestamp, updatedAt: timestamp };
     this.store.bookings.set(booking.bookingId, booking);
+    this.recordAudit(userId, "booking_created", booking.bookingId);
     this.store.idempotency.set(`${userId}:${input.idempotencyKey}`, booking);
     this.store.drafts.delete(draft.draftId);
     return booking;
@@ -111,6 +123,12 @@ export class EmployeeDomain {
     const booking = this.requireBooking(userId, input.bookingId);
     const slot = this.requireSlot(input.slotId);
     return this.saveDraft(userId, "booking_change", { bookingId: booking.bookingId, slotId: slot.slotId }, `Move your ${booking.providerName} visit to ${slot.startsAt}.` , booking.version);
+  }
+
+  prepareBookingCancellation(userId: string, input: PrepareBookingCancellationInput): Draft {
+    const booking = this.requireBooking(userId, input.bookingId);
+    if (booking.status === "cancelled") throw new EmployeeError("CONFLICT", "That appointment is already cancelled.");
+    return this.saveDraft(userId, "booking_cancellation", { bookingId: booking.bookingId }, `Cancel your ${booking.providerName} visit scheduled for ${booking.scheduledStart}.`, booking.version);
   }
 
   confirmBookingChange(userId: string, input: ConfirmBookingChangeInput): Booking {
@@ -123,9 +141,25 @@ export class EmployeeDomain {
     const slot = this.requireSlot(payload.slotId);
     const changed: Booking = { ...booking, scheduledStart: slot.startsAt, scheduledEnd: slot.endsAt, status: "rescheduled", version: booking.version + 1, updatedAt: nowIso() };
     this.store.bookings.set(booking.bookingId, changed);
+    this.recordAudit(userId, "booking_rescheduled", booking.bookingId);
     this.store.idempotency.set(`${userId}:${input.idempotencyKey}`, changed);
     this.store.drafts.delete(draft.draftId);
     return changed;
+  }
+
+  confirmBookingCancellation(userId: string, input: ConfirmBookingCancellationInput): Booking {
+    const existing = this.store.idempotency.get(`${userId}:${input.idempotencyKey}`);
+    if (existing) return existing as Booking;
+    const draft = this.validateDraft(userId, input, "booking_cancellation");
+    const payload = draft.payload as { bookingId: string };
+    const booking = this.requireBooking(userId, payload.bookingId);
+    if (booking.version !== draft.expectedVersion) throw new EmployeeError("CONFLICT", "The appointment changed while you were confirming its cancellation.");
+    const cancelled: Booking = { ...booking, status: "cancelled", version: booking.version + 1, updatedAt: nowIso() };
+    this.store.bookings.set(booking.bookingId, cancelled);
+    this.recordAudit(userId, "booking_cancelled", booking.bookingId);
+    this.store.idempotency.set(`${userId}:${input.idempotencyKey}`, cancelled);
+    this.store.drafts.delete(draft.draftId);
+    return cancelled;
   }
 
   getServiceStatus(userId: string, bookingId: string) { return this.requireBooking(userId, bookingId); }
@@ -141,6 +175,7 @@ export class EmployeeDomain {
     const booking = this.requireBooking(userId, bookingId);
     const document: ServiceDocument = { documentId: id("document"), bookingId, kind: "invoice", label: "Simulated service invoice", content: `SIMULATED — NOT A TAX DOCUMENT\nProvider: ${booking.providerName}\nBooking: ${booking.bookingId}`, simulated: true, createdAt: nowIso() };
     this.store.documents.set(document.documentId, document);
+    this.recordAudit(userId, "document_created", document.documentId);
     return document;
   }
 
@@ -150,6 +185,7 @@ export class EmployeeDomain {
     const booking = [...this.store.bookings.values()].find((candidate) => candidate.userId === userId && candidate.status !== "cancelled" && Math.abs(Date.parse(candidate.scheduledStart) - eventTime) <= 30 * 60 * 1000);
     const context: RingArrivalContext = { eventId: event.eventId, eventType: event.eventType, occurredAt: event.occurredAt, matchedBookingId: booking?.bookingId ?? null, message: booking ? `Your Ring detected activity during the scheduled service window. A ${booking.providerName} visit is expected now, but I can’t verify the person’s identity.` : "Your Ring detected activity, but it does not match a scheduled service window." };
     this.store.ringContexts.set(`${userId}:${event.eventId}`, context);
+    this.recordAudit(userId, "ring_correlated", event.eventId);
     return context;
   }
 
@@ -176,4 +212,5 @@ export class EmployeeDomain {
   private requireOption(optionId: string) { const option = this.store.options.get(optionId); if (!option) throw new EmployeeError("NOT_FOUND", "That service option is not available."); return option; }
   private requireSlot(slotId: string) { const slot = this.store.slots.get(slotId); if (!slot) throw new EmployeeError("NOT_FOUND", "That appointment time is not available."); return slot; }
   private requireBooking(userId: string, bookingId: string) { const booking = this.store.bookings.get(bookingId); if (!booking || booking.userId !== userId) throw new EmployeeError("NOT_FOUND", "That service appointment was not found."); return booking; }
+  private recordAudit(userId: string, action: AuditEvent["action"], entityId: string) { this.store.auditEvents.push({ eventId: id("audit"), userId, action, entityId, occurredAt: nowIso() }); }
 }

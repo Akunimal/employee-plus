@@ -40,7 +40,7 @@ pnpm --filter @employee-plus/mcp-app exec vite build
 pnpm dev
 ```
 
-The local MCP endpoint is `http://localhost:3000/mcp`. The fixture transport accepts `x-employee-user-id` for development only; production must use the planned Cognito OAuth boundary.
+The local MCP endpoint is `http://localhost:3000/mcp`. The fixture transport accepts `x-employee-user-id` outside production for deterministic tests; production requires a Cognito access-token bearer header and uses the verified token subject as the tenant identity.
 
 ## License
 

@@ -5,6 +5,7 @@ import {
   ConfirmBookingChangeInputSchema,
   ConfirmBookingInputSchema,
   PrepareBookingChangeInputSchema,
+  PrepareBookingCancellationInputSchema,
   PrepareBookingInputSchema,
   QuoteSearchInputSchema,
 } from "@employee-plus/contracts";
@@ -22,6 +23,8 @@ const toolResult = (text: string, data: Record<string, unknown>) => ({
 
 const spokenError = (error: unknown) => error instanceof Error ? error.message : "Employee+ could not complete that request.";
 
+type UserResolver = (request: Request | undefined) => string | Promise<string>;
+
 function userIdFromRequest(request: Request | undefined): string {
   const userId = request?.headers.get("x-employee-user-id");
   if (userId && /^[a-zA-Z0-9_-]{1,80}$/.test(userId)) return userId;
@@ -29,9 +32,9 @@ function userIdFromRequest(request: Request | undefined): string {
   return "demo-user";
 }
 
-export function buildMcpHandler(domain: EmployeeDomain, ringEnabled = false) {
-  return createMcpHandler((context) => {
-    const userId = userIdFromRequest(context.requestInfo);
+export function buildMcpHandler(domain: EmployeeDomain, ringEnabled = false, resolveUserId: UserResolver = userIdFromRequest) {
+  return createMcpHandler(async (context) => {
+    const userId = await resolveUserId(context.requestInfo);
     const server = new McpServer({ name: "employee-plus", version: "0.1.0" });
 
     server.registerTool("get_home_brief", {
@@ -108,6 +111,22 @@ export function buildMcpHandler(domain: EmployeeDomain, ringEnabled = false) {
       outputSchema: jsonOutput,
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     }, async (input) => { const booking = domain.confirmBookingChange(userId, input); return toolResult(`Your visit is now scheduled for ${booking.scheduledStart}.`, { booking }); });
+
+    server.registerTool("prepare_booking_cancellation", {
+      title: "Prepare appointment cancellation",
+      description: "Prepare cancellation of a service appointment for explicit consumer confirmation. This never cancels by itself.",
+      inputSchema: PrepareBookingCancellationInputSchema,
+      outputSchema: jsonOutput,
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    }, async (input) => { const draft = domain.prepareBookingCancellation(userId, input); return toolResult(`${draft.summary} Please explicitly confirm if you want me to cancel it.`, { draft }); });
+
+    server.registerTool("confirm_booking_cancellation", {
+      title: "Confirm appointment cancellation",
+      description: "Cancel a previously prepared appointment only after explicit consumer confirmation.",
+      inputSchema: ConfirmBookingInputSchema,
+      outputSchema: jsonOutput,
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
+    }, async (input) => { const booking = domain.confirmBookingCancellation(userId, input); return toolResult(`Your ${booking.providerName} visit has been cancelled.`, { booking }); });
 
     server.registerTool("get_service_status", {
       title: "Get service status",
