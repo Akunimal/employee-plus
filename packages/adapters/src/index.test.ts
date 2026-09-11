@@ -1,5 +1,6 @@
 import { createHmac } from "node:crypto";
 import { describe, expect, it } from "vitest";
+import { EmployeeError } from "@employee-plus/contracts";
 import { RingWebhookDeduplicator, parseRingWebhook, verifyRingWebhookSignature } from "./index.js";
 
 describe("Ring webhook adapter", () => {
@@ -16,5 +17,15 @@ describe("Ring webhook adapter", () => {
     expect(dedupe.accept("evt-1")).toBe(true);
     expect(dedupe.accept("evt-1")).toBe(false);
   });
+  it("evicts the oldest event when the dedupe window is full", () => {
+    const dedupe = new RingWebhookDeduplicator(1);
+    expect(dedupe.accept("evt-1")).toBe(true);
+    expect(dedupe.accept("evt-2")).toBe(true);
+    expect(dedupe.accept("evt-1")).toBe(true);
+  });
   it("parses only the narrow event metadata contract", () => expect(parseRingWebhook(body).eventType).toBe("doorbell_press"));
+  it("rejects malformed and out-of-contract payloads", () => {
+    expect(() => parseRingWebhook("not-json")).toThrowError(EmployeeError);
+    expect(() => parseRingWebhook(JSON.stringify({ eventId: "evt-1" }))).toThrowError(EmployeeError);
+  });
 });

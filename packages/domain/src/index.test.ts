@@ -12,6 +12,24 @@ describe("Employee+ home-service lifecycle", () => {
     expect(brief.recommendation).toContain("water heater");
   });
 
+  it("returns an up-to-date brief when no asset is due", () => {
+    const store = createFixtureStore();
+    for (const asset of store.assets.values()) asset.maintenanceDue = false;
+    const brief = new EmployeeDomain(store).getHomeBrief(userId);
+    expect(brief.dueAssets).toHaveLength(0);
+    expect(brief.recommendation).toContain("up to date");
+  });
+
+  it("lists assets, searches options, checks availability and compares quotes", () => {
+    const domain = new EmployeeDomain(createFixtureStore());
+    expect(domain.listHomeAssets()).toHaveLength(2);
+    expect(domain.searchServiceOptions({ serviceType: "repair", maxResults: 1 })).toHaveLength(1);
+    expect(domain.checkServiceAvailability("option_northstar_standard")).toHaveLength(3);
+    expect(domain.compareQuotes(["option_northstar_priority", "option_northstar_standard"]).map((quote) => quote.price.amount)).toEqual([129, 189]);
+    expect(() => domain.compareQuotes([])).toThrowError(EmployeeError);
+    expect(() => domain.compareQuotes(["missing-option"])).toThrowError(EmployeeError);
+  });
+
   it("requires explicit confirmation and preserves the prepared payload", async () => {
     const domain = new EmployeeDomain(createFixtureStore());
     const draft = await domain.prepareBooking(userId, { assetId: "asset_water_heater", optionId: "option_northstar_standard", slotId: "slot_tomorrow_0900", addressLabel: "Home" });
@@ -20,6 +38,11 @@ describe("Employee+ home-service lifecycle", () => {
     const booking = await domain.confirmBooking(userId, { draftId: draft.draftId, confirmationToken: draft.confirmationToken, payloadHash: draft.payloadHash, idempotencyKey: "book-request-0001" });
     expect(booking.scheduledStart).toBe("2026-09-11T09:00:00.000Z");
     expect(booking.status).toBe("scheduled");
+  });
+
+  it("rejects a booking for an unavailable asset", async () => {
+    const domain = new EmployeeDomain(createFixtureStore());
+    await expect(domain.prepareBooking(userId, { assetId: "asset_missing", optionId: "option_northstar_standard", slotId: "slot_tomorrow_0900", addressLabel: "Home" })).rejects.toThrowError(EmployeeError);
   });
 
   it("makes confirmation idempotent", async () => {
@@ -55,6 +78,10 @@ describe("Employee+ home-service lifecycle", () => {
     const context = await domain.correlateRingEvent(userId, { eventId: "ring-event-1", deviceId: "device-internal", eventType: "doorbell_press", occurredAt: booking.scheduledStart });
     expect(context.matchedBookingId).toBe(booking.bookingId);
     expect(context.message).toContain("can’t verify the person’s identity");
+    expect(domain.getRingArrivalContext(userId, "ring-event-1")).toEqual(context);
+    const unmatched = await domain.correlateRingEvent(userId, { eventId: "ring-event-2", deviceId: "device-internal", eventType: "motion", occurredAt: "2026-09-20T09:00:00.000Z" });
+    expect(unmatched.matchedBookingId).toBeNull();
+    expect(unmatched.message).toContain("does not match");
   });
 
   it("cancels only after explicit confirmation and records an audit event", async () => {
@@ -67,6 +94,20 @@ describe("Employee+ home-service lifecycle", () => {
     const cancelled = await domain.confirmBookingCancellation(userId, { draftId: cancelDraft.draftId, confirmationToken: cancelDraft.confirmationToken, payloadHash: cancelDraft.payloadHash, idempotencyKey: "cancel-request-0001" });
     expect(cancelled.status).toBe("cancelled");
     expect(store.auditEvents.map((event) => event.action)).toContain("booking_cancelled");
+    expect(() => domain.getRingArrivalContext(userId, "missing-ring-event")).toThrowError(EmployeeError);
+    await expect(domain.prepareBookingCancellation(userId, { bookingId: booking.bookingId })).rejects.toThrowError(EmployeeError);
+  });
+
+  it("returns status and creates a simulated service document", async () => {
+    const domain = new EmployeeDomain(createFixtureStore());
+    const draft = await domain.prepareBooking(userId, { assetId: "asset_water_heater", optionId: "option_northstar_standard", slotId: "slot_tomorrow_0900", addressLabel: "Home" });
+    const booking = await domain.confirmBooking(userId, { draftId: draft.draftId, confirmationToken: draft.confirmationToken, payloadHash: draft.payloadHash, idempotencyKey: "book-request-doc1" });
+    expect(domain.getServiceStatus(userId, booking.bookingId)).toEqual(booking);
+    const document = await domain.createSimulatedDocument(userId, booking.bookingId);
+    expect(document.simulated).toBe(true);
+    expect(document.content).toContain("SIMULATED");
+    expect(domain.getServiceDocument(userId, document.documentId)).toEqual(document);
+    expect(() => domain.getServiceDocument(userId, "document_missing")).toThrowError(EmployeeError);
   });
 
   it("hydrates dynamic state from DynamoDB and writes a complete snapshot", async () => {
