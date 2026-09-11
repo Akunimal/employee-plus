@@ -16,16 +16,41 @@ const userResolver = createUserResolver();
 const mcpHandler = buildMcpHandler(domain, ringEnabled, userResolver);
 const mcpNodeHandler = toNodeHandler(mcpHandler);
 const ringDedupe = new RingWebhookDeduplicator();
+const MAX_MCP_REQUEST_BYTES = 1_000_000;
+const configuredOrigins = new Set(
+  (process.env.ALLOWED_ORIGINS ?? "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+);
 
 function writeJson(response: import("node:http").ServerResponse, status: number, body: Record<string, unknown>) {
-  response.writeHead(status, { "content-type": "application/json" });
+  response.writeHead(status, {
+    "content-type": "application/json; charset=utf-8",
+    "cache-control": "no-store",
+    "x-content-type-options": "nosniff",
+    "referrer-policy": "no-referrer",
+  });
   response.end(JSON.stringify(body));
 }
 
 function validOrigin(origin: string | undefined) {
   if (!origin) return true;
+  if (configuredOrigins.has(origin)) return true;
+  if (production) return false;
   try { const url = new URL(origin); return ["localhost", "127.0.0.1", "::1"].includes(url.hostname); }
   catch { return false; }
+}
+
+function requestPath(request: import("node:http").IncomingMessage) {
+  return new URL(request.url ?? "/", "http://employee-plus.local").pathname;
+}
+
+function contentLengthExceedsLimit(request: import("node:http").IncomingMessage) {
+  const value = request.headers["content-length"];
+  if (!value || Array.isArray(value)) return false;
+  const length = Number(value);
+  return Number.isFinite(length) && length > MAX_MCP_REQUEST_BYTES;
 }
 
 function readBody(request: import("node:http").IncomingMessage, maxBytes = 1_000_000): Promise<string> {
@@ -52,23 +77,30 @@ function writeAuthenticationRequired(response: import("node:http").ServerRespons
 }
 
 const server = createServer(async (request, response) => {
-  if (request.url === "/health/live") {
-    response.writeHead(200, { "content-type": "application/json" });
-    response.end(JSON.stringify({ status: "ok", service: "employee-plus" }));
+  const path = requestPath(request);
+
+  if (path === "/health/live") {
+    writeJson(response, 200, { status: "ok", service: "employee-plus" });
     return;
   }
-  if (request.url === "/health/ready") {
-    response.writeHead(200, { "content-type": "application/json" });
-    response.end(JSON.stringify({ status: "ready", persistence: production ? "dynamodb" : "fixture-store", authentication: production ? "cognito-jwt" : "fixture" }));
+  if (path === "/health/ready") {
+    writeJson(response, 200, { status: "ready", persistence: production ? "dynamodb" : "fixture-store", authentication: production ? "cognito-jwt" : "fixture" });
     return;
   }
-  if (request.url === "/privacy" || request.url === "/terms") {
-    response.writeHead(200, { "content-type": "text/plain; charset=utf-8" });
-    response.end(request.url === "/privacy" ? "Employee+ privacy notice — synthetic demo data only.\n" : "Employee+ terms — no payments, tax documents, or identity verification.\n");
+  if (path === "/privacy" || path === "/terms") {
+    response.writeHead(200, {
+      "content-type": "text/plain; charset=utf-8",
+      "cache-control": "no-store",
+      "content-security-policy": "default-src 'none'",
+      "x-content-type-options": "nosniff",
+      "referrer-policy": "no-referrer",
+    });
+    response.end(path === "/privacy" ? "Employee+ privacy notice — synthetic demo data only.\n" : "Employee+ terms — no payments, tax documents, or identity verification.\n");
     return;
   }
-  if (request.url === "/mcp") {
+  if (path === "/mcp") {
     if (!validOrigin(request.headers.origin)) { writeJson(response, 403, { code: "INVALID_ORIGIN", message: "Origin is not allowed." }); return; }
+    if (contentLengthExceedsLimit(request)) { writeJson(response, 413, { code: "PAYLOAD_TOO_LARGE", message: "Request payload is too large." }); return; }
     if (production) {
       try { await userResolver(toAuthRequest(request)); }
       catch { writeAuthenticationRequired(response); return; }
@@ -76,7 +108,7 @@ const server = createServer(async (request, response) => {
     mcpNodeHandler(request, response);
     return;
   }
-  if (request.url === "/webhooks/ring" && ringEnabled) {
+  if (path === "/webhooks/ring" && ringEnabled) {
     if (request.method !== "POST") { response.writeHead(405, { allow: "POST" }); response.end(); return; }
     const body = await readBody(request).catch(() => null);
     const secret = process.env.RING_WEBHOOK_SECRET;
@@ -91,7 +123,7 @@ const server = createServer(async (request, response) => {
     } catch { writeJson(response, 400, { code: "INVALID_RING_EVENT", message: "Ring event payload is invalid." }); }
     return;
   }
-  if (request.url === "/.well-known/oauth-protected-resource") {
+  if (path === "/.well-known/oauth-protected-resource") {
     const host = request.headers.host;
     const cognitoIssuer = process.env.COGNITO_ISSUER;
     if (!host || !cognitoIssuer) {
@@ -105,11 +137,15 @@ const server = createServer(async (request, response) => {
     });
     return;
   }
-  if (request.url === "/") {
+  if (path === "/") {
     writeJson(response, 200, { name: "Employee+", version: "0.1.0", status: production ? "mcp-ready-production" : "mcp-ready-local", ringToolsPublished: ringEnabled, example: domain.getHomeBrief("demo-user") });
     return;
   }
   writeJson(response, 404, { code: "NOT_FOUND", message: "Route not found." });
 });
 
+/*
+ * Keep the server bootstrap deliberately small. All route policy lives above so
+ * the same executable is used by local smoke tests and the production image.
+ */
 server.listen(port, () => console.log(`Employee+ local server listening on http://localhost:${port}`));
