@@ -5,7 +5,9 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig*.json vitest.confi
 COPY apps ./apps
 COPY packages ./packages
 COPY infra ./infra
+COPY scripts ./scripts
 RUN pnpm install --frozen-lockfile --ignore-scripts
+RUN pnpm --filter @employee-plus/mcp-app build
 RUN node node_modules/typescript/bin/tsc -b --pretty false
 
 FROM node:24-bookworm-slim AS runtime
@@ -23,6 +25,7 @@ COPY --from=build /workspace/apps/mcp-server/dist ./apps/mcp-server/dist
 COPY --from=build /workspace/packages/contracts/dist ./packages/contracts/dist
 COPY --from=build /workspace/packages/domain/dist ./packages/domain/dist
 COPY --from=build /workspace/packages/adapters/dist ./packages/adapters/dist
+COPY --from=build /workspace/apps/mcp-app/dist/index.inline.html ./apps/mcp-app/dist/index.inline.html
 USER employee
 EXPOSE 3000
 CMD ["node", "apps/mcp-server/dist/index.js"]

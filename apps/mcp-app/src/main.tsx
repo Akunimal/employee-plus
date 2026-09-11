@@ -5,6 +5,12 @@ import "./styles.css";
 
 type Theme = "dark" | "light";
 
+type HomeBrief = {
+  recommendation: string;
+  dueAssets: Array<{ name: string; location: string }>;
+  upcomingBookings: Array<{ providerName: string; scheduledStart: string; status: string }>;
+};
+
 type Quote = {
   provider: string;
   description: string;
@@ -19,6 +25,40 @@ const quotes: Quote[] = [
   { provider: "Cedar & Coil", description: "Full system check and service", price: "$215", rating: "4.7", earliest: "Thu, Sep 17", accent: "blue" },
 ];
 
+const fallbackBrief: HomeBrief = {
+  recommendation: "Your water heater needs attention this week.",
+  dueAssets: [{ name: "Main water heater", location: "Utility room" }],
+  upcomingBookings: [{ providerName: "Northstar Home Care", scheduledStart: "2026-09-16T14:00:00-03:00", status: "scheduled" }],
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function asMoney(value: unknown) {
+  if (!isRecord(value) || typeof value.amount !== "number") return "Price on request";
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value.amount);
+}
+
+function toQuote(value: unknown, index: number): Quote | null {
+  if (!isRecord(value) || typeof value.providerName !== "string") return null;
+  const rating = typeof value.rating === "number" ? value.rating.toFixed(1) : "—";
+  return {
+    provider: value.providerName,
+    description: typeof value.title === "string" ? value.title : typeof value.description === "string" ? value.description : "Home service option",
+    price: asMoney(value.price),
+    rating,
+    earliest: typeof value.earliest === "string" ? value.earliest : index === 0 ? "Next available" : "Ask for availability",
+    accent: index % 2 === 0 ? "mint" : "blue",
+  };
+}
+
+function readStructuredData(value: unknown): Record<string, unknown> | null {
+  if (!isRecord(value) || !isRecord(value.structuredContent)) return null;
+  const structured = value.structuredContent;
+  return isRecord(structured.data) ? structured.data : null;
+}
+
 function ThemeToggle({ theme, onToggle }: { theme: Theme; onToggle: () => void }) {
   const nextTheme = theme === "dark" ? "light" : "dark";
   return (
@@ -30,6 +70,8 @@ function ThemeToggle({ theme, onToggle }: { theme: Theme; onToggle: () => void }
 }
 
 export function HomeCareBoard() {
+  const [brief, setBrief] = useState<HomeBrief>(fallbackBrief);
+  const [availableQuotes, setAvailableQuotes] = useState<Quote[]>(quotes);
   const [theme, setTheme] = useState<Theme>("dark");
   const [connected, setConnected] = useState(false);
   const [selectedQuote, setSelectedQuote] = useState<string | null>(null);
@@ -44,6 +86,28 @@ export function HomeCareBoard() {
       }
     };
     mcpApp.onhostcontextchanged = applyHostContext;
+    mcpApp.ontoolresult = (result) => {
+      const data = readStructuredData(result);
+      if (!data) return;
+      if (typeof data.recommendation === "string" && Array.isArray(data.dueAssets)) {
+        setBrief({
+          recommendation: data.recommendation,
+          dueAssets: data.dueAssets.filter(isRecord).map((asset) => ({ name: typeof asset.name === "string" ? asset.name : "Home system", location: typeof asset.location === "string" ? asset.location : "Home" })),
+          upcomingBookings: Array.isArray(data.upcomingBookings) ? data.upcomingBookings.filter(isRecord).map((booking) => ({ providerName: typeof booking.providerName === "string" ? booking.providerName : "Service provider", scheduledStart: typeof booking.scheduledStart === "string" ? booking.scheduledStart : "", status: typeof booking.status === "string" ? booking.status : "scheduled" })) : [],
+        });
+      }
+      if (Array.isArray(data.options)) {
+        const nextQuotes = data.options.map(toQuote).filter((quote): quote is Quote => quote !== null);
+        if (nextQuotes.length) setAvailableQuotes(nextQuotes);
+      }
+      const booking = data.booking;
+      if (isRecord(booking) && typeof booking.providerName === "string" && typeof booking.scheduledStart === "string") {
+        const providerName = booking.providerName;
+        const scheduledStart = booking.scheduledStart;
+        const status = typeof booking.status === "string" ? booking.status : "scheduled";
+        setBrief((current) => ({ ...current, upcomingBookings: [{ providerName, scheduledStart, status }] }));
+      }
+    };
     mcpApp.connect()
       .then(() => {
         setConnected(true);
@@ -58,7 +122,7 @@ export function HomeCareBoard() {
     document.documentElement.style.colorScheme = theme;
   }, [theme]);
 
-  const selectedProvider = quotes.find((quote) => quote.provider === selectedQuote);
+  const selectedProvider = availableQuotes.find((quote) => quote.provider === selectedQuote);
 
   return (
     <main className="board" aria-labelledby="title">
@@ -89,8 +153,8 @@ export function HomeCareBoard() {
         <div className="attention-icon" aria-hidden="true">!</div>
         <div className="attention-content">
           <p className="eyebrow">NEEDS ATTENTION</p>
-          <h2 id="attention-title">Your water heater needs a check-up.</h2>
-          <p>Main water heater <span className="separator">·</span> Utility room <span className="separator">·</span> Due this week</p>
+          <h2 id="attention-title">{brief.recommendation}</h2>
+          <p>{brief.dueAssets[0]?.name ?? "Home maintenance"} <span className="separator">·</span> {brief.dueAssets[0]?.location ?? "Your home"} <span className="separator">·</span> Due this week</p>
         </div>
         <button className="primary-button" type="button" onClick={() => document.getElementById("service-options")?.scrollIntoView({ behavior: "smooth" })}>See options <span aria-hidden="true">↗</span></button>
       </section>
@@ -102,7 +166,7 @@ export function HomeCareBoard() {
             <button className="text-button" type="button">Compare all <span aria-hidden="true">→</span></button>
           </div>
           <div className="quote-list">
-            {quotes.map((quote) => (
+            {availableQuotes.map((quote) => (
               <article className={`quote-card ${selectedQuote === quote.provider ? "selected" : ""}`} key={quote.provider}>
                 <div className={`quote-avatar ${quote.accent}`} aria-hidden="true">{quote.provider.charAt(0)}</div>
                 <div className="quote-main">
@@ -122,8 +186,7 @@ export function HomeCareBoard() {
         <aside className="side-column">
           <section className="panel visit-panel" aria-labelledby="visit-title">
             <div className="panel-heading"><div><p className="eyebrow">NEXT UP</p><h2 id="visit-title">Upcoming visit</h2></div><span className="status-pill">Scheduled</span></div>
-            <div className="visit-provider"><span className="provider-mark">N</span><span><strong>Northstar Home Care</strong><small>Water heater service</small></span></div>
-            <div className="visit-time"><span className="calendar-icon" aria-hidden="true">▣</span><span><strong>Wednesday, Sep 16</strong><small>2:00 PM – 3:00 PM</small></span></div>
+            {brief.upcomingBookings[0] ? <><div className="visit-provider"><span className="provider-mark">{brief.upcomingBookings[0].providerName.charAt(0)}</span><span><strong>{brief.upcomingBookings[0].providerName}</strong><small>Home service visit</small></span></div><div className="visit-time"><span className="calendar-icon" aria-hidden="true">▣</span><span><strong>{new Date(brief.upcomingBookings[0].scheduledStart).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}</strong><small>{new Date(brief.upcomingBookings[0].scheduledStart).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</small></span></div></> : <p className="muted">No visits scheduled.</p>}
             <button className="secondary-button" type="button">Manage visit <span aria-hidden="true">→</span></button>
           </section>
 

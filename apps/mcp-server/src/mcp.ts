@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { z } from "zod";
 import { createMcpHandler, McpServer, ResourceTemplate } from "@modelcontextprotocol/server";
 import {
@@ -25,6 +26,11 @@ const spokenError = (error: unknown) => error instanceof Error ? error.message :
 
 type UserResolver = (request: Request | undefined) => string | Promise<string>;
 
+const HOME_CARE_BOARD_URI = "ui://employee/home-care-board";
+const boardToolMeta = { _meta: { ui: { resourceUri: HOME_CARE_BOARD_URI } } };
+const boardResourceMeta = { csp: { connectDomains: [], resourceDomains: [] }, prefersBorder: false };
+const homeCareBoardHtml = readFileSync(new URL("../../mcp-app/dist/index.inline.html", import.meta.url), "utf8");
+
 function userIdFromRequest(request: Request | undefined): string {
   const userId = request?.headers.get("x-employee-user-id");
   if (userId && /^[a-zA-Z0-9_-]{1,80}$/.test(userId)) return userId;
@@ -43,6 +49,7 @@ export function buildMcpHandler(domain: EmployeeDomain, ringEnabled = false, res
       inputSchema: z.object({}),
       outputSchema: jsonOutput,
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+      ...boardToolMeta,
     }, async () => {
       try { const data = domain.getHomeBrief(userId); return toolResult(data.recommendation, data); }
       catch (error) { return toolResult(spokenError(error), { error: "DEPENDENCY_FAILURE" }); }
@@ -54,6 +61,7 @@ export function buildMcpHandler(domain: EmployeeDomain, ringEnabled = false, res
       inputSchema: z.object({}),
       outputSchema: jsonOutput,
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+      ...boardToolMeta,
     }, async () => toolResult("Here are the systems registered for your home.", { assets: domain.listHomeAssets() }));
 
     server.registerTool("search_service_options", {
@@ -62,6 +70,7 @@ export function buildMcpHandler(domain: EmployeeDomain, ringEnabled = false, res
       inputSchema: QuoteSearchInputSchema,
       outputSchema: jsonOutput,
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+      ...boardToolMeta,
     }, async (input) => toolResult(`I found ${domain.searchServiceOptions(input).length} service options.`, { options: domain.searchServiceOptions(input) }));
 
     server.registerTool("check_service_availability", {
@@ -70,6 +79,7 @@ export function buildMcpHandler(domain: EmployeeDomain, ringEnabled = false, res
       inputSchema: z.object({ optionId: z.string() }),
       outputSchema: jsonOutput,
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+      ...boardToolMeta,
     }, async ({ optionId }) => toolResult("These appointment windows are available.", { slots: domain.checkServiceAvailability(optionId) }));
 
     server.registerTool("compare_quotes", {
@@ -78,6 +88,7 @@ export function buildMcpHandler(domain: EmployeeDomain, ringEnabled = false, res
       inputSchema: z.object({ optionIds: z.array(z.string()).min(1).max(5) }),
       outputSchema: jsonOutput,
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+      ...boardToolMeta,
     }, async ({ optionIds }) => toolResult("Here is the comparison, ordered from lowest price.", { options: domain.compareQuotes(optionIds) }));
 
     server.registerTool("prepare_booking", {
@@ -86,6 +97,7 @@ export function buildMcpHandler(domain: EmployeeDomain, ringEnabled = false, res
       inputSchema: PrepareBookingInputSchema,
       outputSchema: jsonOutput,
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+      ...boardToolMeta,
     }, async (input) => { const draft = await domain.prepareBooking(userId, input); return toolResult(`${draft.summary} Please explicitly confirm if you want me to book it.`, { draft }); });
 
     server.registerTool("confirm_booking", {
@@ -94,6 +106,7 @@ export function buildMcpHandler(domain: EmployeeDomain, ringEnabled = false, res
       inputSchema: ConfirmBookingInputSchema,
       outputSchema: jsonOutput,
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+      ...boardToolMeta,
     }, async (input) => { const booking = await domain.confirmBooking(userId, input); return toolResult(`Your ${booking.providerName} visit is booked for ${booking.scheduledStart}.`, { booking }); });
 
     server.registerTool("prepare_booking_change", {
@@ -102,6 +115,7 @@ export function buildMcpHandler(domain: EmployeeDomain, ringEnabled = false, res
       inputSchema: PrepareBookingChangeInputSchema,
       outputSchema: jsonOutput,
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+      ...boardToolMeta,
     }, async (input) => { const draft = await domain.prepareBookingChange(userId, input); return toolResult(`${draft.summary} Please explicitly confirm if you want me to move it.`, { draft }); });
 
     server.registerTool("confirm_booking_change", {
@@ -110,6 +124,7 @@ export function buildMcpHandler(domain: EmployeeDomain, ringEnabled = false, res
       inputSchema: ConfirmBookingChangeInputSchema,
       outputSchema: jsonOutput,
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+      ...boardToolMeta,
     }, async (input) => { const booking = await domain.confirmBookingChange(userId, input); return toolResult(`Your visit is now scheduled for ${booking.scheduledStart}.`, { booking }); });
 
     server.registerTool("prepare_booking_cancellation", {
@@ -118,6 +133,7 @@ export function buildMcpHandler(domain: EmployeeDomain, ringEnabled = false, res
       inputSchema: PrepareBookingCancellationInputSchema,
       outputSchema: jsonOutput,
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+      ...boardToolMeta,
     }, async (input) => { const draft = await domain.prepareBookingCancellation(userId, input); return toolResult(`${draft.summary} Please explicitly confirm if you want me to cancel it.`, { draft }); });
 
     server.registerTool("confirm_booking_cancellation", {
@@ -126,6 +142,7 @@ export function buildMcpHandler(domain: EmployeeDomain, ringEnabled = false, res
       inputSchema: ConfirmBookingInputSchema,
       outputSchema: jsonOutput,
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
+      ...boardToolMeta,
     }, async (input) => { const booking = await domain.confirmBookingCancellation(userId, input); return toolResult(`Your ${booking.providerName} visit has been cancelled.`, { booking }); });
 
     server.registerTool("get_service_status", {
@@ -134,6 +151,7 @@ export function buildMcpHandler(domain: EmployeeDomain, ringEnabled = false, res
       inputSchema: z.object({ bookingId: z.string() }),
       outputSchema: jsonOutput,
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+      ...boardToolMeta,
     }, async ({ bookingId }) => { const booking = domain.getServiceStatus(userId, bookingId); return toolResult(`Your ${booking.providerName} visit is ${booking.status}.`, { booking }); });
 
     server.registerTool("get_service_document", {
@@ -142,10 +160,11 @@ export function buildMcpHandler(domain: EmployeeDomain, ringEnabled = false, res
       inputSchema: z.object({ documentId: z.string() }),
       outputSchema: jsonOutput,
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+      ...boardToolMeta,
     }, async ({ documentId }) => { const document = domain.getServiceDocument(userId, documentId); return toolResult("Here is your simulated service document. It is not a tax document.", { document }); });
 
     server.registerResource("home-brief", "employee://me/home-brief", { title: "Employee+ home brief", mimeType: "application/json" }, async (uri) => ({ contents: [{ uri: uri.href, mimeType: "application/json", text: JSON.stringify(domain.getHomeBrief(userId)) }] }));
-    server.registerResource("home-care-board", "ui://employee/home-care-board", { title: "Employee+ Home Care Board", mimeType: "text/html;profile=mcp-app" }, async (uri) => ({ contents: [{ uri: uri.href, mimeType: "text/html;profile=mcp-app", text: "<main><h1>Employee+ Home Care Board</h1><p>Ask Employee Plus what your home needs this week.</p></main>" }] }));
+    server.registerResource("home-care-board", HOME_CARE_BOARD_URI, { title: "Employee+ Home Care Board", mimeType: "text/html;profile=mcp-app", _meta: { ui: boardResourceMeta } }, async (uri) => ({ contents: [{ uri: uri.href, mimeType: "text/html;profile=mcp-app", text: homeCareBoardHtml }] }));
     server.registerResource("booking", new ResourceTemplate("employee://bookings/{bookingId}", { list: undefined }), { title: "Employee+ booking", mimeType: "application/json" }, async (uri, variables) => { const booking = domain.getServiceStatus(userId, String(variables.bookingId)); return { contents: [{ uri: uri.href, mimeType: "application/json", text: JSON.stringify(booking) }] }; });
     server.registerResource("document", new ResourceTemplate("employee://documents/{documentId}", { list: undefined }), { title: "Employee+ service document", mimeType: "application/json" }, async (uri, variables) => { const document = domain.getServiceDocument(userId, String(variables.documentId)); return { contents: [{ uri: uri.href, mimeType: "application/json", text: JSON.stringify(document) }] }; });
 

@@ -22,13 +22,24 @@ try {
   const listed = await request({ jsonrpc: "2.0", id: 2, method: "tools/list", params: {} });
   const names = listed.payload.result.tools.map((tool) => tool.name);
   if (names.length !== 13 || !names.includes("confirm_booking") || !names.includes("confirm_booking_cancellation")) throw new Error(`Unexpected base tool registry: ${names.join(", ")}`);
+  const boardTools = ["get_home_brief", "list_home_assets", "search_service_options", "check_service_availability", "compare_quotes", "prepare_booking", "confirm_booking", "prepare_booking_change", "confirm_booking_change", "prepare_booking_cancellation", "confirm_booking_cancellation", "get_service_status", "get_service_document"];
+  for (const tool of listed.payload.result.tools) {
+    if (boardTools.includes(tool.name) && tool._meta?.ui?.resourceUri !== "ui://employee/home-care-board") throw new Error(`Tool ${tool.name} is missing the MCP App resource metadata.`);
+  }
+  const resources = await request({ jsonrpc: "2.0", id: 6, method: "resources/list", params: {} });
+  if (!resources.payload.result?.resources) throw new Error(`Resources list failed: ${JSON.stringify(resources.payload)}`);
+  const boardResource = resources.payload.result.resources.find((resource) => resource.uri === "ui://employee/home-care-board");
+  if (!boardResource?._meta?.ui || boardResource._meta.ui.prefersBorder !== false) throw new Error("Home Care Board resource metadata is missing.");
+  const boardRead = await request({ jsonrpc: "2.0", id: 7, method: "resources/read", params: { uri: "ui://employee/home-care-board" } });
+  const boardHtml = boardRead.payload.result.contents?.[0]?.text ?? "";
+  if (!boardHtml.includes("Employee+") || /<script[^>]+src=|<link[^>]+href=/i.test(boardHtml)) throw new Error("Home Care Board resource is not a self-contained HTML document.");
   const brief = await request({ jsonrpc: "2.0", id: 3, method: "tools/call", params: { name: "get_home_brief", arguments: {} } });
   if (!brief.payload.result?.structuredContent?.data?.dueAssets?.length) throw new Error("Home brief did not return due assets.");
   const rejected = await request({ jsonrpc: "2.0", id: 4, method: "tools/list", params: {} }, { origin: "https://untrusted.example" });
   if (rejected.response.status !== 403) throw new Error(`Origin validation returned ${rejected.response.status}.`);
   const authRequest = await fetch("http://127.0.0.1:3210/mcp", { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream", "MCP-Protocol-Version": "2025-11-25" }, body: JSON.stringify({ jsonrpc: "2.0", id: 5, method: "initialize", params: {} }) });
   if (authRequest.status !== 200) throw new Error(`Local test authentication unexpectedly rejected: ${authRequest.status}.`);
-  console.log(JSON.stringify({ status: "ok", protocol: initialized.payload.result.protocolVersion, toolCount: names.length, originValidation: "ok", oauthMetadata: "ok" }));
+  console.log(JSON.stringify({ status: "ok", protocol: initialized.payload.result.protocolVersion, toolCount: names.length, uiResource: "ok", originValidation: "ok", oauthMetadata: "ok" }));
 } finally {
   server.kill("SIGTERM");
   await new Promise((resolve) => server.once("exit", resolve));
