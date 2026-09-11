@@ -26,6 +26,8 @@ try {
   if (!brief.payload.result?.structuredContent?.data?.dueAssets?.length) throw new Error("Home brief did not return due assets.");
   const rejected = await request({ jsonrpc: "2.0", id: 4, method: "tools/list", params: {} }, { origin: "https://untrusted.example" });
   if (rejected.response.status !== 403) throw new Error(`Origin validation returned ${rejected.response.status}.`);
+  const authRequest = await fetch("http://127.0.0.1:3210/mcp", { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream", "MCP-Protocol-Version": "2025-11-25" }, body: JSON.stringify({ jsonrpc: "2.0", id: 5, method: "initialize", params: {} }) });
+  if (authRequest.status !== 200) throw new Error(`Local test authentication unexpectedly rejected: ${authRequest.status}.`);
   console.log(JSON.stringify({ status: "ok", protocol: initialized.payload.result.protocolVersion, toolCount: names.length, originValidation: "ok", oauthMetadata: "ok" }));
 } finally {
   server.kill("SIGTERM");

@@ -12,7 +12,8 @@ if (production && !draftSecret) throw new Error("DRAFT_SECRET is required in pro
 const domain = new EmployeeDomain(stateStore, draftSecret ?? "employee-plus-local-draft-secret");
 const port = Number(process.env.PORT ?? 3000);
 const ringEnabled = process.env.RING_ENABLED === "true" && process.env.RING_TEST_ACCOUNT_CONNECTED === "true";
-const mcpHandler = buildMcpHandler(domain, ringEnabled, createUserResolver());
+const userResolver = createUserResolver();
+const mcpHandler = buildMcpHandler(domain, ringEnabled, userResolver);
 const mcpNodeHandler = toNodeHandler(mcpHandler);
 const ringDedupe = new RingWebhookDeduplicator();
 
@@ -37,6 +38,19 @@ function readBody(request: import("node:http").IncomingMessage, maxBytes = 1_000
   });
 }
 
+function toAuthRequest(request: import("node:http").IncomingMessage): Request {
+  const headers = new Headers();
+  for (const [name, value] of Object.entries(request.headers)) {
+    if (value) headers.set(name, Array.isArray(value) ? value.join(", ") : value);
+  }
+  return new Request("http://employee-plus.local/mcp", { headers });
+}
+
+function writeAuthenticationRequired(response: import("node:http").ServerResponse) {
+  response.writeHead(401, { "content-type": "application/json", "www-authenticate": 'Bearer realm="employee-plus"' });
+  response.end(JSON.stringify({ code: "AUTHENTICATION_REQUIRED", message: "Authentication is required." }));
+}
+
 const server = createServer(async (request, response) => {
   if (request.url === "/health/live") {
     response.writeHead(200, { "content-type": "application/json" });
@@ -55,6 +69,10 @@ const server = createServer(async (request, response) => {
   }
   if (request.url === "/mcp") {
     if (!validOrigin(request.headers.origin)) { writeJson(response, 403, { code: "INVALID_ORIGIN", message: "Origin is not allowed." }); return; }
+    if (production) {
+      try { await userResolver(toAuthRequest(request)); }
+      catch { writeAuthenticationRequired(response); return; }
+    }
     mcpNodeHandler(request, response);
     return;
   }
