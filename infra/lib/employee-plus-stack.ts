@@ -32,7 +32,7 @@ export class EmployeePlusStack extends cdk.Stack {
     const appRunnerAccessRole = new iam.Role(this, "AppRunnerAccessRole", { assumedBy: new iam.ServicePrincipal("build.apprunner.amazonaws.com") });
     repository.grantPull(appRunnerAccessRole);
     table.grantReadWriteData(runtimeRole); documents.grantReadWrite(runtimeRole); events.grantSendMessages(runtimeRole); key.grantEncryptDecrypt(runtimeRole);
-    runtimeRole.addToPolicy(new iam.PolicyStatement({ actions: ["bedrock:InvokeModel"], resources: ["arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-lite-v1:0"] }));
+    runtimeRole.addToPolicy(new iam.PolicyStatement({ actions: ["bedrock:InvokeModel"], resources: [`arn:aws:bedrock:${this.region}::foundation-model/amazon.nova-lite-v1:0`] }));
 
     const streamRule = new eventsModule.Rule(this, "StateChangeRule", { eventPattern: { source: ["employee-plus.domain"], detailType: ["EmployeePlusStateChanged"] } });
     streamRule.addTarget(new eventTargets.SqsQueue(events));

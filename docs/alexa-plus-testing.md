@@ -18,7 +18,7 @@ For interactive MCP validation, run the standard MCP Inspector against `http://1
 
 ## 2. Deploy a development endpoint
 
-Use the AWS CDK stack only after choosing the target account, region (`us-east-1` for this project), budget alert and resource cleanup policy. Push the container to ECR, deploy App Runner, and replace the example domain in `addon-package/addon.json` with the real HTTPS URL. Do not put tokens or personal addresses in traces.
+Use the AWS CDK stack only after choosing the target account and an available region. The stack defaults to `us-east-2` for this account, but `CDK_DEFAULT_REGION` can override it; the hackathon does not require a particular AWS region. Push the container to ECR, deploy App Runner, and replace the example domain in `addon-package/addon.json` with the real HTTPS URL. Do not put tokens or personal addresses in traces.
 
 ## 3. Connect the add-on
 
