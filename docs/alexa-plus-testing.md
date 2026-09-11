@@ -31,8 +31,18 @@ The script builds and pushes an immutable image tag, deploys ECS Express Mode, a
 
 After signing in to the Alexa developer environment, install and configure the official Alexa AI CLI, then run:
 
+The CLI is distributed through Amazon CodeArtifact, not the public npm registry. The Alexa developer setup provides an `alexa-ai` AWS profile for that private registry. Do not place access keys, CodeArtifact tokens or Alexa credentials in this repository.
+
 ```powershell
+aws codeartifact login --tool npm --domain alexa-ai --repository npm-packages --domain-owner 372468808636 --region us-west-2 --namespace @alexa-ai --profile alexa-ai
+npm install --global @alexa-ai/cli
+alexa-ai --version
 alexa-ai configure
+```
+
+The `alexa-ai` profile is separate from the Employee+ infrastructure profile. The setup must be completed in the Alexa Developer Console before the commands above can succeed.
+
+```powershell
 alexa-ai deploy
 ```
 
