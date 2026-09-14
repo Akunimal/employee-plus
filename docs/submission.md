@@ -16,7 +16,7 @@ Ring is not part of this submission. No Ring claim, track selection, or Ring foo
 - [x] Keep the Apache-2.0 license visible at the repository root.
 - [x] Keep setup and run instructions in the English README.
 - [x] Keep the endpoint, privacy URL, terms URL, and account-linking metadata in `addon-package/addon.json`.
-- [ ] Upload the final English demo video publicly to YouTube or Vimeo and paste its URL into Devpost.
+- [x] Upload the final English demo video publicly to YouTube or Vimeo and paste its URL into Devpost: https://youtu.be/uH3KLmjfJ5I
 - [ ] Paste the final English project description and product feedback.
 - [ ] Paste the friction log entries. Do not include credentials, tokens, private email content, or personal addresses.
 
@@ -32,7 +32,8 @@ the project's eligibility route.
 - [x] The video labels the experience as simulated Alexa+ and uses synthetic service data.
 - [x] The story shows the consumer need, comparison, explicit confirmation, durable booking, and context-preserving date change.
 - [ ] Watch the final export muted and at 720p for legibility.
-- [ ] Confirm the final upload is publicly visible and contains no copyrighted music or unlicensed material.
+- [x] Confirm the final upload is publicly visible: https://youtu.be/uH3KLmjfJ5I
+- [x] YouTube's upload checks reported no copyright problems; the cut uses the project's original narration and embedded subtitles.
 
 ## Evidence policy
 
