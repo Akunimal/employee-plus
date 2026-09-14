@@ -1,0 +1,15 @@
+{
+  "capturedAt": "2026-09-14",
+  "source": "final ECR image executed with Docker Engine in Ubuntu WSL",
+  "imageTag": "211078730f9d04cfb92f72c3753ad75d0ed42641",
+  "imageDigest": "sha256:8585f884e109db56b09acf6bc658ed2658e01b9df17d5876ea9eeb90e49d8974",
+  "checks": {
+    "healthLive": 200,
+    "healthReady": 200,
+    "mcpInitialize": 200,
+    "protocol": "2025-11-25",
+    "origin": "http://127.0.0.1:3310",
+    "cleanup": "container removed after test"
+  },
+  "honestyNote": "The first external-Origin probe returned INVALID_ORIGIN as expected. The successful MCP probe used the local test Origin."
+}
