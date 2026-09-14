@@ -16,6 +16,8 @@ try {
   }
   const live = await fetch("http://127.0.0.1:3210/health/live");
   if (live.headers.get("cache-control") !== "no-store" || live.headers.get("x-content-type-options") !== "nosniff") throw new Error("Health endpoint is missing security headers.");
+  const reset = await fetch("http://127.0.0.1:3210/demo/reset", { method: "POST" });
+  if (reset.status !== 204) throw new Error(`Demo reset returned ${reset.status}.`);
   const oversized = await fetch("http://127.0.0.1:3210/mcp", { method: "POST", headers: { "content-type": "application/json", origin: "http://localhost:3210" }, body: "x".repeat(1_000_001) });
   if (oversized.status !== 413) throw new Error(`Oversized MCP payload returned ${oversized.status}.`);
   const initialized = await request({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-11-25", capabilities: {}, clientInfo: { name: "employee-plus-smoke", version: "0.1.0" } } });

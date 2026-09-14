@@ -76,6 +76,16 @@ function writeAuthenticationRequired(response: import("node:http").ServerRespons
   response.end(JSON.stringify({ code: "AUTHENTICATION_REQUIRED", message: "Authentication is required." }));
 }
 
+function resetDemoState() {
+  stateStore.bookings.clear();
+  stateStore.documents.clear();
+  stateStore.drafts.clear();
+  stateStore.idempotency.clear();
+  stateStore.ringEvents.clear();
+  stateStore.ringContexts.clear();
+  stateStore.auditEvents.length = 0;
+}
+
 const server = createServer(async (request, response) => {
   const path = requestPath(request);
 
@@ -96,6 +106,14 @@ const server = createServer(async (request, response) => {
       "referrer-policy": "no-referrer",
     });
     response.end(path === "/privacy" ? "Employee+ privacy notice — synthetic demo data only.\n" : "Employee+ terms — no payments, tax documents, or identity verification.\n");
+    return;
+  }
+  if (path === "/demo/reset") {
+    if (production) { writeJson(response, 404, { code: "NOT_FOUND", message: "Route not found." }); return; }
+    if (request.method !== "POST") { response.writeHead(405, { allow: "POST" }); response.end(); return; }
+    resetDemoState();
+    response.writeHead(204, { "cache-control": "no-store" });
+    response.end();
     return;
   }
   if (path === "/mcp") {

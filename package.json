@@ -12,6 +12,8 @@
     "build": "pnpm -r build",
     "pretest": "pnpm --filter @employee-plus/mcp-app build",
     "dev": "pnpm --filter @employee-plus/mcp-server dev",
+    "demo": "pnpm --filter @employee-plus/video-demo dev",
+    "demo:build": "pnpm --filter @employee-plus/video-demo build",
     "format:check": "prettier --check packages/adapters/src/index.test.ts packages/domain/src/index.test.ts",
     "lint": "tsc -b --pretty false",
     "test": "vitest run --coverage",

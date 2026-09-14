@@ -42,6 +42,21 @@ pnpm dev
 
 The local MCP endpoint is `http://localhost:3000/mcp`. The fixture transport accepts `x-employee-user-id` outside production for deterministic tests; production requires a Cognito access-token bearer header and uses the verified token subject as the tenant identity.
 
+## Recording demo
+
+The impact-focused demo host lives in `apps/video-demo`. It is a separate visual shell for recording the Alexa+ simulated experience; its conversation and board actions call the local MCP tools with the deterministic `video-demo` user.
+
+Run the MCP server in one terminal and the demo host in another:
+
+```powershell
+pnpm dev
+pnpm demo
+```
+
+Open `http://127.0.0.1:5173/`. The flow is: home brief, compare quotes, select a provider, prepare and explicitly confirm a booking, then prepare and confirm a date change. The top label and footer make the simulated Alexa+ and synthetic-data boundaries visible for recording.
+
+The `Reset scene` control is development-only and is never exposed by the production MCP server.
+
 ## License
 
 Apache-2.0. See [LICENSE](LICENSE).
