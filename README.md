@@ -68,7 +68,7 @@ pnpm video:voice
 # Open Remotion Studio for timing and visual review.
 pnpm video:studio
 
-# Render artifacts/employee-plus-demo-voice.mp4.
+# Render artifacts/employee-plus-demo.mp4.
 pnpm video:render
 ```
 
