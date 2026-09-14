@@ -1,0 +1,35 @@
+{
+  "capturedAt": "2026-09-14",
+  "evidenceType": "local-simulated-alexa-plus",
+  "officialAlexaPlusInspector": false,
+  "source": "apps/video-demo",
+  "mcpTransport": "local Streamable HTTP",
+  "userFixture": "video-demo",
+  "visibleBoundaryLabels": [
+    "SIMULATED ALEXA+ EXPERIENCE",
+    "Synthetic service data",
+    "Recording mode · All actions above call the local MCP server · No real services or payments"
+  ],
+  "workflow": [
+    "get_home_brief",
+    "search_service_options",
+    "compare_quotes",
+    "check_service_availability",
+    "prepare_booking",
+    "confirm_booking",
+    "prepare_booking_change",
+    "confirm_booking_change"
+  ],
+  "safetyChecks": [
+    "prepare actions do not mutate the booking",
+    "confirmation is explicit",
+    "date change preserves provider, service, and quoted price",
+    "video-demo uses deterministic synthetic data"
+  ],
+  "verificationCommands": [
+    "pnpm demo:build",
+    "pnpm test:mcp",
+    "pnpm video:typecheck"
+  ],
+  "honestyNote": "This artifact proves the local simulated experience and is not an official Alexa+ certification or Web Simulator result."
+}

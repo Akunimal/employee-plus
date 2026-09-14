@@ -1,6 +1,9 @@
 # How to test Employee+ with Alexa+
 
-The test sequence is intentionally staged. Alexa+ does not call a private laptop directly; the final end-to-end test needs a deployed HTTPS MCP endpoint and an add-on deployed to the development stage.
+The test sequence is intentionally staged. The primary implementation is a
+self-hosted HTTPS MCP endpoint. The hackathon also accepts a clearly shown
+simulated Alexa+ experience, so the local recording route remains valid when
+the private Alexa+ Preview is unavailable.
 
 ## 1. Local server and automated smoke test
 
@@ -24,10 +27,9 @@ Use the AWS CDK stack only after choosing the target account and an available re
 ./scripts/deploy-employee-plus.ps1 -Profile employee-plus -Region us-east-2
 ```
 
-The script builds and pushes an immutable image tag, deploys ECS Express Mode, and prints the HTTPS endpoint. Replace the example domain in `addon-package/addon.json` with that endpoint. Do not put tokens or personal addresses in traces.
+The script builds and pushes an immutable image tag, deploys ECS Express Mode, and prints the HTTPS endpoint. Keep `addon-package/addon.json` aligned with the deployed endpoint. Do not put tokens or personal addresses in traces.
 
-
-## 3. Connect the add-on
+## 3. Connect the add-on when Preview is available
 
 After signing in to the Alexa developer environment, install and configure the official Alexa AI CLI, then run:
 
@@ -48,6 +50,10 @@ alexa-ai deploy
 
 The package must include the completed short/full descriptions, example phrases, privacy/terms URLs, media assets and account-linking configuration. Alexa+ refreshes MCP tools on deployment, so redeploy after changing tools or resources.
 
+This step is optional for the accepted simulated route. Do not invent a private
+registry token or claim that the add-on was deployed if the account is not
+enabled for Preview.
+
 ## 4. End-to-end test
 
 Use the Alexa+ Web Simulator to exercise:
@@ -60,6 +66,20 @@ Use the Alexa+ Web Simulator to exercise:
 
 If R0 and M5 pass with the official Ring simulator/API, add the Ring phrase and capture the temporal-match response. Otherwise test cancellation, the simulated document and audit evidence instead. A physical Alexa device is optional.
 
+When official Preview access is unavailable, run the equivalent flow through
+`apps/video-demo` after starting the local MCP server:
+
+```powershell
+pnpm dev
+pnpm demo
+```
+
+The shell is visibly labeled as a simulated Alexa+ experience and calls the
+same deterministic MCP tools used by the product runtime.
+
 ## 5. Evidence
 
-Store sanitized `inspection-summary.json`, `certification-verdict.json`, MCP traces and screenshots under `docs/evidence/`. The submission video must show the real MCP endpoint and stay under the hackathon limit.
+Store sanitized MCP traces and simulation evidence under `docs/evidence/`.
+Only add official Inspector or Web Simulator verdicts when they were actually
+run. The submission video must show the simulated Alexa+ experience clearly
+and stay under the hackathon limit.

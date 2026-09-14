@@ -3,7 +3,7 @@ packages:
   - "packages/*"
   - "infra"
 allowBuilds:
-  esbuild: set this to true or false
+  esbuild: true
 minimumReleaseAgeExclude:
   - zod@4.6.2
   - aws-cdk-lib@2.269.0

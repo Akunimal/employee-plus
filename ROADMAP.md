@@ -52,7 +52,7 @@ rejects anonymous MCP with `401`.
 
 Commit: `feat(mcp): expose Employee+ through Streamable HTTP`
 
-## M3 — AWS and account linking — DEPLOYED / ALEXA PREVIEW BLOCKED
+## M3 — AWS and account linking — DEPLOYED / PREVIEW OPTIONAL
 
 - Deploy the server to ECS Express Mode through an immutable ECR image.
 - Add Cognito Authorization Code + PKCE S256.
@@ -61,23 +61,25 @@ Commit: `feat(mcp): expose Employee+ through Streamable HTTP`
 
 Foundation gate progress: the encrypted data plane and ECS Express Mode service
 are deployed in `us-east-2` with immutable image tag `cdb331d`. Production
-runtime uses Cognito JWT validation and DynamoDB-backed state. Alexa+ account
-linking cannot be completed until Amazon enables this account for MCP Preview.
+runtime uses Cognito JWT validation and DynamoDB-backed state. Official Alexa+
+Preview account linking remains unavailable for this account, but it is not an
+eligibility blocker because the hackathon rules accept a clearly shown simulated
+Alexa+ experience as an alternate path.
 
 Gate: remote HTTPS endpoint, linked-user isolation, reproducible CDK deployment, and failure recovery.
 
 Commit: `feat(aws): deploy secure event-driven infrastructure`
 
-## M4 — Alexa+ and MCP App — CODE READY / PREVIEW ACCESS PENDING
+## M4 — Alexa+ and MCP App — CODE READY / SIMULATION READY
 
 - Create the Alexa+ MCP Toolkit package with the official CLI/Agent Skill.
 - Add account-linking metadata, store text, privacy URL, terms URL, icon, carousel image, and four tested phrases.
 - Build the Home Care Board using MCP Apps.
 - Support voice-only, small display, large display, light mode, and dark mode.
 
-Gate: development add-on deployed and every advertised capability works. The
-code and remote MCP endpoint are ready; Amazon Preview enablement is the only
-external blocker for the official Alexa+ inspectors and Web Simulator.
+Gate: the self-hosted MCP endpoint and the clearly labeled simulated Alexa+
+experience work from a reproducible local setup. Official Preview inspectors
+are optional follow-up evidence and are not required for the simulation route.
 
 Commit: `feat(alexa): add Employee+ multimodal experience`
 
@@ -97,6 +99,7 @@ Commit: `feat(ring): correlate Ring events with scheduled service visits`
 - Test Alexa+ Web Simulator end to end.
 - Add Playwright, axe, load, security, dependency, secret, SBOM, and container checks.
 - Prepare product feedback, friction logs, feature requests, demo video, and Devpost submission.
+- Keep the simulation route explicit in the README, video, and submission description.
 
 Commits:
 
@@ -104,4 +107,5 @@ Commits:
 - `test: harden security performance and cross-device flows`
 - `docs: prepare Amazon Developer Hackathon submission`
 
-Internal freeze: 22 October 2026, 18:00 ART.
+Internal freeze: 22 October 2026, 18:00 ART. Official deadline: 23 October
+2026, 12:00 PM PDT.

@@ -5,6 +5,7 @@
     { "path": "packages/domain" },
     { "path": "packages/adapters" },
     { "path": "apps/mcp-server" },
-    { "path": "apps/video-demo" }
+    { "path": "apps/video-demo" },
+    { "path": "apps/video-renderer" }
   ]
 }

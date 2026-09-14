@@ -6,7 +6,7 @@ The project is being built as a greenfield implementation for the Amazon Develop
 
 ## Status
 
-The local vertical slice is executable: strict contracts, deterministic workflows, two-step confirmation, idempotent booking, a real MCP Streamable HTTP endpoint, Ring webhook primitives, a MCP App board, and a CDK infrastructure scaffold. AWS account linking and the official Ring gate remain environment-dependent.
+The local vertical slice is executable: strict contracts, deterministic workflows, two-step confirmation, idempotent booking, a real MCP Streamable HTTP endpoint, Ring webhook primitives, a MCP App board, and a CDK infrastructure scaffold. The repository also includes a clearly labeled simulated Alexa+ experience for the hackathon's accepted simulation route. AWS account linking and the official Ring gate remain environment-dependent and are not presented as completed capabilities.
 
 ## Planned experience
 
@@ -56,6 +56,31 @@ pnpm demo
 Open `http://127.0.0.1:5173/`. The flow is: home brief, compare quotes, select a provider, prepare and explicitly confirm a booking, then prepare and confirm a date change. The top label and footer make the simulated Alexa+ and synthetic-data boundaries visible for recording.
 
 The `Reset scene` control is development-only and is never exposed by the production MCP server.
+
+## Demo video renderer
+
+The short submission video is generated with Remotion from `apps/video-renderer`. It is intentionally separate from the product runtime and renders an honest simulated Alexa+ story with embedded English subtitles. VoiceStudio is used locally only to generate the narration; its source code is not copied into this repository.
+
+```powershell
+# Start VoiceStudio locally, then generate one narration track.
+pnpm video:voice
+
+# Open Remotion Studio for timing and visual review.
+pnpm video:studio
+
+# Render artifacts/employee-plus-demo-voice.mp4.
+pnpm video:render
+```
+
+VoiceStudio's local API is expected at `http://127.0.0.1:3900`. If clips are not present, Remotion still renders a subtitle-only review video so the visual edit can be validated first.
+
+## Submission materials
+
+- [Submission checklist](docs/submission.md)
+- [Product feedback](docs/product-feedback.md)
+- [Friction log](docs/friction-log.md)
+- [Open Source mini challenge notes](docs/open-source-submission.md)
+- [Evidence notes](docs/evidence/README.md)
 
 ## License
 

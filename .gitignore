@@ -20,4 +20,9 @@ cdk.out/
 infra/cdk.out-*/
 infra/infra/
 artifacts/local/
+artifacts/*.mp4
+artifacts/voicestudio-install/
+apps/video-renderer/public/voice/*.wav
+apps/video-renderer/artifacts/
+apps/video-renderer/dist-types/
 tmp/

@@ -1,12 +1,12 @@
-# Employee+ demo video plan: visible value in 110 seconds
+# Employee+ demo video plan: visible value in 76 seconds
 
 Status: production plan only. No recording, audio generation, demo-host implementation, or publication is included in this document's delivery.
 
-This replaces the earlier 2:54 storyboard. Target runtime: **1:50**, including opening and closing. Hard ceiling: **2:00**. Audience: hackathon judges seeing Employee+ for the first time.
+This replaces the earlier 2:54 storyboard. Target runtime: **1:16**, including opening and closing. Hard ceiling: **1:30**. Audience: hackathon judges seeing Employee+ for the first time.
 
 ## 1. The story viewers should remember
 
-**A home problem becomes a clear appointment, and the user stays in control.**
+**A noisy home-care backlog becomes one clear appointment, and the user stays in control.**
 
 Follow one water-heater maintenance need through comparison, explicit booking confirmation, and a date change. The most important shot is the appointment changing dates while its provider, service, and displayed quote stay visible and unchanged.
 
@@ -16,7 +16,7 @@ The viewer should understand three benefits with the audio muted:
 - Compare options and approve the booking yourself.
 - Change plans without starting again.
 
-Use the existing dark Employee+ visual style, English synthetic narration, and English subtitles. Introduce the product through an action in the first three seconds. Save the logo-only frame for the ending.
+Use the existing dark Employee+ visual style, English synthetic narration, and English subtitles. Introduce the pain in the first three seconds: three small home-care threads competing for attention. Present Employee+ as a calm virtual home-care concierge for Alexa+, not as Alexa's voice and not as a human employee. Save the logo-only frame for the ending.
 
 ## 2. Recording prerequisites and truth boundaries
 
@@ -40,17 +40,16 @@ The plan uses the simulated Alexa+ approach previously selected by the author. C
 
 The narration below is the full script. Prompt text is shown on screen and is not narrated separately. Record voice by scene, with a calm US-English synthetic voice at approximately 135–145 words per minute. Use remaining time for reading and observing the result; do not fill every second with speech.
 
-| Time | Visible action and framing | Short overlay | Narration |
-| --- | --- | --- | --- |
-| 0:00–0:08 | Open directly on the water-heater attention card. Its maintenance warning is the focal point; Employee+ branding is already in the header. | Home maintenance. One less worry. | “Your water heater needs attention. Finding help shouldn't become another job.” |
-| 0:08–0:21 | Submit “What does my home need this week?” The real home brief populates the board. Keep the maintenance card large and the empty appointment state visible. | Know what needs attention | “Employee Plus brings your home-care tasks and service options into one guided conversation.” |
-| 0:21–0:35 | Submit “Compare water-heater repair options.” Show only the two repair cards. Align price and warranty fields so differences are readable. Select Standard, $129. | Compare. Choose. | “Compare two repair options, see the price and warranty, and choose what works for you.” |
-| 0:35–0:52 | Prepare Standard for Wednesday. Zoom to the review card: provider, service, date, timezone, $129. Show Awaiting confirmation and zero bookings. Hold the readable summary for at least four seconds. | Nothing booked yet | “Choosing isn't booking. Review the provider, time, and price. Nothing is scheduled until you confirm.” |
-| 0:52–1:02 | Submit “Yes, confirm the booking.” Keep the action and result together: pending review becomes one Scheduled visit. Hold the completed card. | You confirm. Then it's booked. | “Confirm once. Your appointment appears right here.” |
-| 1:02–1:24 | Submit “Move it to Thursday. Keep everything else.” Show the proposed date while Wednesday remains the current appointment. Submit “Yes, confirm the change.” Highlight only the updated date; keep provider, service, and $129 in the same screen positions. | Only the date changed | “Plans changed? Move the visit to Thursday. Keep the same provider, service, and quoted price. Review the change, confirm, and you're done.” |
-| 1:24–1:36 | Refresh the home brief through MCP and show the single updated appointment. Briefly switch to light mode, then return to dark, keeping the same content and layout. | One visit. Everything in view. | “One appointment, with the new date and the details still together.” |
-| 1:36–1:44 | Eight-second technical insert: actual sanitized remote smoke result plus a small original caption: Self-hosted MCP · AWS deployment · Open source. Show no scrolling terminal log. | Working MCP. Deployed on AWS. | “A working MCP server, deployed on AWS. Open source, with tested booking workflows.” |
-| 1:44–1:50 | End on the updated appointment, then a short Employee+ closing card and repository URL. | Less coordination. More control. | “Employee Plus. Less coordination. More control.” |
+| Time      | Visible action and framing                                                                                                                                                                                                                                    | Short overlay                        | Narration                                                                                                                        |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| 0:00–0:07 | Open on a compact home-care backlog: water heater, HVAC filter, and faucet. Highlight the water heater while the other two remain visible as competing threads.                                                                                               | The house never stops asking.        | “Your home never stops asking. The hard part is not noticing a problem. It is coordinating what happens next.”                   |
+| 0:07–0:16 | Submit “What does my home need this week?” The real home brief turns the noisy backlog into one guided next step.                                                                                                                                             | One calm conversation.               | “Employee Plus is your virtual home-care concierge for Alexa Plus. Ask once, and it turns a vague worry into a clear next step.” |
+| 0:16–0:28 | Submit “Compare water-heater repair options.” Show only the two repair cards. Align price and warranty fields so differences are readable. Select Standard, $129.                                                                                             | Compare. Choose.                     | “It brings price, warranty, rating, and availability together so you can choose with confidence.”                                |
+| 0:28–0:38 | Prepare Standard for Wednesday. Zoom to the review card: provider, service, date, timezone, $129. Show Awaiting confirmation and zero bookings. Hold the readable summary for at least four seconds.                                                          | Nothing booked yet.                  | “Choosing is not booking. Review every detail first. Nothing happens until you say yes.”                                         |
+| 0:38–0:48 | Submit “Yes, confirm the booking.” Keep the action and result together: pending review becomes one Scheduled visit. Hold the completed card.                                                                                                                  | You confirm. Then it's booked.       | “Your confirmation creates one durable appointment. No duplicate action. No hidden payment.”                                     |
+| 0:48–0:58 | Submit “Move it to Thursday. Keep everything else.” Show the proposed date while Wednesday remains the current appointment. Submit “Yes, confirm the change.” Highlight only the updated date; keep provider, service, and $129 in the same screen positions. | Only the date changed.               | “Plans change. Move the visit while Employee Plus preserves the provider, service, and quoted price.”                            |
+| 0:58–1:07 | Refresh the home brief through MCP and show the single updated appointment. Briefly switch to light mode, then return to dark, keeping the same content and layout.                                                                                           | One visit. Everything in view.       | “The Home Care Board keeps the task, appointment, document, and status together.”                                                |
+| 1:07–1:16 | End on the updated appointment, then a short technical caption and Employee+ closing card with repository URL.                                                                                                                                                | Clear. Reviewable. Yours to approve. | “Employee Plus for Alexa Plus: the next right action, clear, reviewable, and yours to approve.”                                  |
 
 The technical insert must use checks from the recording day and name the environment. Do not claim production readiness, an operational Bedrock pipeline, official Alexa+ certification, or whole-repository 100% coverage. Ring, invoices, cancellation, setup instructions, and detailed architecture belong outside this short cut.
 
@@ -59,7 +58,7 @@ The technical insert must use checks from the recording day and name the environ
 - Composition: allocate approximately 30% of the frame to the latest conversation turn and 70% to the board. Collapse older messages. During confirmation, make the review card the dominant element.
 - Typography: at 1080p, use at least 28 px for essential product details, 40–48 px for overlays, and 32 px subtitles. Reserve the bottom 120 px for subtitles so they never cover the confirmation action or price.
 - Attention: highlight one changing element per shot. Use mint for the selected action, amber for pending confirmation, and a checkmark plus text for success. Meaning must remain clear without relying on color alone.
-- Motion: direct cuts or restrained 150–250 ms transitions. At most one slow crop/zoom per scene. No intro animation, rapid montage, typing simulation, decorative confetti, or continuously moving cursor.
+- Motion: use direct editorial cuts with only a restrained 150–170 ms edge fade. Do not translate whole scenes, add slow zooms, or animate between every card. No intro animation, rapid montage, typing simulation, decorative confetti, or continuously moving cursor.
 - Reading time: hold prices and confirmation summaries for at least four seconds. Show every explicit confirmation at normal speed. Trim unrelated waiting between scenes, never the cause-and-result sequence that proves user control.
 - Capture: OBS window capture, 1920×1080, 30 fps. Record to MKV and remux for editing. Capture a full uninterrupted reference take first, then clean scene takes with two seconds of handles at each end.
 - Consistency: preserve the same selected option, dates, and single booking across scene cuts. Restart only the disposable local demo fixture for retakes; never reset shared AWS state to stage a shot.
@@ -73,7 +72,7 @@ Raw takes, generated voice, and editing files should be kept in the ignored loca
 
 - Watch once with sound muted. An unfamiliar viewer must be able to explain what needed attention, which option was chosen, when the booking became real, and what changed afterward. If any answer is unclear, revise the relevant shot before adding more narration.
 - Watch once at 720p. Prices, dates, confirmation state, and simulation labels must remain readable without pausing.
-- Confirm runtime is 110 seconds, with a maximum of 120 seconds including all end cards. If trimming is necessary, remove the theme switch and shorten the technical insert first; preserve confirmation and the date-change comparison.
+- Confirm runtime is 76 seconds, with a maximum of 90 seconds including all end cards. If trimming is necessary, remove the theme switch and shorten the technical insert first; preserve confirmation and the date-change comparison.
 - Match every shown state to its captured MCP result. Before confirmation: no new booking. After confirmation: exactly one booking. After moving: the same booking with the new date and unchanged selected option.
 - Verify that fallback content is absent from the product flow and that a service error cannot silently turn into a successful demo state.
 - Include the simulation and synthetic-data labels throughout product footage. Separate local interaction footage from remote deployment evidence explicitly.

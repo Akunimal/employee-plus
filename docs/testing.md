@@ -43,3 +43,11 @@ Remove-Item Env:EMPLOYEE_PLUS_ENDPOINT
 Authenticated `tools/list`, `resources/list` and `resources/read` remain gated
 on a Cognito test user or the Alexa+ Preview account. Do not bypass that gate
 with fabricated tokens.
+
+## Accepted Alexa+ simulation route
+
+The hackathon rules also accept a simulated Alexa+ experience for the Alexa+
+track. Employee+ uses `apps/video-demo` for this route. It is a visual shell
+that calls the local MCP server and is persistently labeled `SIMULATED ALEXA+
+EXPERIENCE` and `Synthetic service data`. This proves the consumer workflow
+without pretending that the private Alexa+ Preview is enabled.
