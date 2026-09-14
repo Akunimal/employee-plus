@@ -22,6 +22,8 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm --filter @employee-plus/mcp-app build
+      - run: pnpm demo:build
+      - run: pnpm video:typecheck
       - run: node node_modules/typescript/bin/tsc -b --pretty false
       - run: node node_modules/typescript/bin/tsc -p apps/mcp-app/tsconfig.json --pretty false
       - run: node node_modules/typescript/bin/tsc -p infra/tsconfig.json --pretty false
